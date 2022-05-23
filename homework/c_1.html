@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.440">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Cristián Ayala">
+
+<title>Control 1</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+<script src="c_1_files/libs/clipboard/clipboard.min.js"></script>
+<script src="c_1_files/libs/quarto-html/quarto.js"></script>
+<script src="c_1_files/libs/quarto-html/popper.min.js"></script>
+<script src="c_1_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="c_1_files/libs/quarto-html/anchor.min.js"></script>
+<link href="c_1_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link id="quarto-text-highlighting-styles" href="c_1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet">
+<script src="c_1_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="c_1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="c_1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Control 1</h1>
+<p class="subtitle lead">Web Scrapping y acceso a datos desde la web con R</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Autor</div>
+    <div class="quarto-title-meta-contents">
+             <p>Cristián Ayala </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de Publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">26 de mayo de 2022</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+
+</div>
+<dl>
+<dt>Ponderación</dt>
+<dd>
+20% de la nota final del curso
+</dd>
+<dt>Formato</dt>
+<dd>
+Desarrollar esta tarea en un Rmarkdown, agregando comentarios cuando sea necesario.
+</dd>
+</dl>
+<section id="objetivo" class="level3">
+<h3 class="anchored" data-anchor-id="objetivo">Objetivo:</h3>
+<p>Capturar la información presente en la página <a href="https://www.scrapethissite.com/pages/simple/" class="uri">https://www.scrapethissite.com/pages/simple/</a> para el análisis de información</p>
+</section>
+<section id="tareas" class="level2">
+<h2 class="anchored" data-anchor-id="tareas">Tareas:</h2>
+<ol type="1">
+<li><p>Desde la página web a capturar, identificar el nombre de la clase de <code>css</code> para:</p>
+<ul>
+<li>Nombre de país</li>
+<li>Nombre de capital</li>
+<li>Población</li>
+<li>Superficie</li>
+</ul></li>
+<li><p>Capturar la información de todos los países para pasarla a una data.frame.</p></li>
+<li><p>Listar los nombres de países desde el con menor población al con mayor población.</p></li>
+<li><p>Agregar a la base de datos el dato <code>continente</code> para cada país según la base de datos <a href="homework/c_1_files/countryName_continent.csv">countryName_continent.csv</a> disponible en el repositorio.</p></li>
+<li><p>Graficar la relación entre superficie (eje x) y población (eje y) coloreando cada país según el continente al que pertenezca según la base de datos <code>continente</code>.</p></li>
+</ol>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copiada");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
