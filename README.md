@@ -25,25 +25,42 @@ almacenada y —de alguna manera— disponible en Internet.
 
 Tendremos clases teóricas (T) y prácticas (P).
 
-| Clase | fecha      | tipo | contenido                                          | Paquetes                                                                                       | entrega | link/grabación zoom | material                                      |
-|------:|:-----------|:-----|:---------------------------------------------------|:-----------------------------------------------------------------------------------------------|:--------|:--------------------|:----------------------------------------------|
-|     1 | 2022-05-24 | T    | Introducción a Web Scraping                        | [`rvest`](https://rvest.tidyverse.org)                                                         |         |                     | \[Slides\] [.Rmd](slides/class_1/class_1.Rmd) |
-|     2 | 2022-05-26 | P    | Repaso R: manejo de listas y expresiones regulares | [`purrr`](https://purrr.tidyverse.org) [`stringr`](https://stringr.tidyverse.org)              |         |                     | \[RScript\]                                   |
-|     3 | 2022-05-31 | T    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         |         |                     | \[Slides\] \[.Rmd\]                           |
-|     4 | 2022-06-02 | P    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         |         |                     | \[RScript\]\[Casen2020\]                      |
-|     5 | 2022-06-07 | T    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       |         |                     | \[Files\]                                     |
-|     6 | 2022-06-09 | P    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       |         |                     | \[Files\]                                     |
-|     7 | 2022-06-14 | T    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         |         |                     | \[Slides\] \[.Rmd\]                           |
-|     8 | 2022-06-16 | P    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         |         |                     |                                               |
-|     9 | 2022-06-21 | T    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) |         |                     | \[Slides\] \[.Rmd\]                           |
-|    10 | 2022-06-23 | P    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) |         |                     | \[RScript\] \[Data\]                          |
-|    11 | 2022-06-28 | T    | Recuento                                           |                                                                                                |         |                     | \[Slides\] \[.Rmd\]                           |
+| Clase | fecha      | tipo | contenido                                          | Paquetes                                                                                       | entrega      | link/grabación zoom | material                                                              |
+|------:|:-----------|:-----|:---------------------------------------------------|:-----------------------------------------------------------------------------------------------|:-------------|:--------------------|:----------------------------------------------------------------------|
+|     1 | 2022-05-24 | T    | Introducción a Web Scraping                        | [`rvest`](https://rvest.tidyverse.org)                                                         |              |                     | [Slides](slides/class_1/class_1#1) [.Rmd](slides/class_1/class_1.Rmd) |
+|     2 | 2022-05-26 | P    | Repaso R: manejo de listas y expresiones regulares | [`purrr`](https://purrr.tidyverse.org) [`stringr`](https://stringr.tidyverse.org)              |              |                     |                                                                       |
+|     3 | 2022-05-31 | T    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         |              |                     |                                                                       |
+|     4 | 2022-06-02 | P    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         | C1 (20%)     |                     |                                                                       |
+|     5 | 2022-06-07 | T    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       |              |                     |                                                                       |
+|     6 | 2022-06-09 | P    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       | C2 (20%)     |                     |                                                                       |
+|     7 | 2022-06-14 | T    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         |              |                     |                                                                       |
+|     8 | 2022-06-16 | P    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         | Propuesta TF |                     |                                                                       |
+|     9 | 2022-06-21 | T    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) |              |                     |                                                                       |
+|    10 | 2022-06-23 | P    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) | C3 (20%)     |                     |                                                                       |
+|    11 | 2022-06-28 | T    | Recuento                                           |                                                                                                | TF (40%)     |                     |                                                                       |
+
+#### Evaluaciones
+
+-   Control 1 (20%): Captura de página web.
+    [Instrucciones](./homework/c_1)
+
+-   Control 2 (20%):
+
+-   Control 3 (20%):
+
+-   Trabajo Final (40%):
 
 ------------------------------------------------------------------------
 
 #### Requisitos
 
 -   Descargar e instalar [R 4.2](https://cran.r-project.org)
+
+#### Recursos de aprendizaje
+
+-   [CSS Diner](https://flukeout.github.io): It’s a fun game to learn
+    and practice CSS selectors. Repo en
+    [Github](https://github.com/flukeout/css-diner)
 
 #### Lecturas y referencias
 

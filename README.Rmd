@@ -43,12 +43,24 @@ calendario |>
   knitr::kable()
 ```
 
+#### Evaluaciones 
+
+- Control 1 (20%): Captura de página web. [Instrucciones](./homework/c_1)
+- Control 2 (20%): 
+- Control 3 (20%):
+
+- Trabajo Final (40%): 
 
 ---
 
 #### Requisitos
 
 - Descargar e instalar [R 4.2](https://cran.r-project.org)
+
+
+#### Recursos de aprendizaje
+
+- [CSS Diner](https://flukeout.github.io): It's a fun game to learn and practice CSS selectors. Repo en [Github](https://github.com/flukeout/css-diner)
 
 
 #### Lecturas y referencias
