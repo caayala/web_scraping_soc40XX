@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Introducción</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Introducción
+]
+.subtitle[
+## Web Scrapping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+## Espectativas y nivelación
+
+- ¿Cuál fue su motivación para tomar este curso?
+
+- ¿Que tanto saben de la *web*?
+
+- Recordar algunas nociones de R que nos ayudarán en lo que sigue del curso.
+
+
+---
+
+## Recomendaciones iniciales
+
+- Instalar *[R 4.2](https://cloud.r-project.org/)*: Uso la nueva *pipe base* en mis ejemplos (`|&gt;`)
+    - **Cuidado**, será necesario re--instalar todos los paquetes. 
+    
+- Instalar la última versión de *[RStudio](https://www.rstudio.com/products/rstudio/download/#download)*.
+    - Soporte para `|&gt;` y mejoras varias.
+    
+- Acceder a repositorio de Github para acceder a material de clases y ejercicios.
+    - [Repositorio del curso](https://github.com/caayala/web_scraping_soc40XX)
+
+
+---
+
+## ¿Por qué web scraping?
+
+Definición:
+
+&gt; Capturar datos estructurados de una forma automátizada
+
+Si ya han *copiado--&amp;--pegado* información de la web a un archivo, guardado imágenes o sonidos manualmente, ya hicieron web scraping. 
+
+Ahora queremos tener la capacidad para **automatizar** ese proceso.
+
+&lt;br /&gt;
+
+Ej: Comparar precios en un sitio como [Knasta](https://knasta.cl).
+
+
+---
+
+## ¿Por qué web scraping?
+
+¡Tanta información disponible!
+
+.pull-left[
+- Permite **automatizar** la toma de gran cantidad de datos.
+
+- Capacidad de **complementar** e **integrar** distintas fuentes de información.
+
+- Existe también información propia que se puede integrar y manejar.
+
+- Una vez concluido el proceso, se obtiene información estructurada.
+]
+
+.pull-right[
+- La web es **desordenada**.
+
+- Es posible que se requiera de mucho procesamiento luego de obtenido los datos.
+
+- Se deben considerar aspectos éticos y legales.
+]
+
+
+---
+
+## ¿Para que se usa el web scraping?
+
+.pull-left[
+1. Precios
+
+1. Propiedades
+
+1. Análisis de mercado
+
+1. Finanzas
+
+1. Noticias y contenido
+]
+
+.pull-right[
+![Usos de web scrapping](https://miro.medium.com/max/1132/1*G_HA1qyqT9aqmLoh3bWwTw.png)
+]
+
+
+---
+
+## ¿Cuál es el proceso para hacer web scraping?
+
+1. Identificar un sitio web de interés.
+
+1. Localizar las URLs en donde esté la información que querramos extraer.
+
+1. Pedir la información en esos URLs al servidor para obtener el `html`.
+
+1. Localizar la información específica que interesa guardar.
+
+1. Guardar la información en un archivo de datos estructurado.
+
+
+---
+
+## ¿Por qué con R?
+
+* Sistema de análisis integrado
+
+* Luego de adquirir datos, podemos rápidamente seguir con su limpieza y análisis estadístico.
+
+* **importar** -&gt; manipular -&gt; modelar -&gt; visualizar -&gt; comunicar
+
+&lt;br /&gt;
+.center[
+&lt;img 
+src="https://upload.wikimedia.org/wikipedia/commons/d/d4/One_Ring_Blender_Render.png" 
+alt="el anillo del poder" width="33%"/&gt;
+]
+
+
+---
+
+## ¿Qué veremos en este curso?
+
+.pull-left[
+- ¿Cómo trabajar con listas en R?
+
+- ¿Qué es una página web? ¿Cómo entender `html`?
+
+- ¿Qué es una API?
+
+- ¿Qué librerías podemos usar para aprovechar APIs de servicios web?
+
+- ¿Cuáles son las consideraciones a tener en cuenta?
+
+Será eminentemente **práctico**.
+]
+
+.pull-right[
+![Mago de Oz](https://hackerchick.com/media/2019/05/wizard-of-oz-man-behind-the-curtain.jpg)
+]
+
+---
+class: fullscreen, center, middle, inverse
+background-image: url("images/")
+
+## Clase 1
+
+.huge[Aplicación práctica]
+
+
+---
+
+## ¿Qué es una página web?
+
+.pull-left[
+* Combina un protocolo de intercambio de datos ---`http`--- para el intercambio de información.
+
+* La información intercambiada puede ser cualesquiera.
+
+* Se intercambian mensajes individuales: el cliente envía mensaje, el servidor responde.
+
+* Para mantener una sesión de comunicación se usan *cookies* y *encabezados*.
+]
+
+.pull-right[
+![An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview/fetching_a_page.png)
+
+Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
+]
+
+
+---
+
+## ¿Qué es una página web? Componentes
+
+.pull-left[
+* Acá se ven las capas de protocolos que componen *la web*.
+
+* Es extensible: se puede construir servicios unos sobre otros.
+
+* Para nuestro interés nos interesa la parte superior: `html`, `css`, `API` y `javascript`. 
+]
+
+.pull-right[
+![An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview/http-layers.png)
+
+Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
+]
+
+
+---
+
+## ¿Qué es una página web? Componentes
+
+.pull-left[
+- `html` (*HyperText Markup Language*): provee el contenido que nos gustaría obtener.
+
+- `css` (*Cascading Style Sheets*): controla la forma en que se muestra ese contenido.  
+    Podemos usar reglas de formatos para seleccionar el contenido de la página.
+
+- `APIs` (*Application Programming Interface*): permite pedirle a un servidor información específica de nuestro interés. 
+
+- `javascript`: faculta a que una página web contenga programas ([¡wordle!](https://www.nytimes.com/games/wordle/index.html)).  
+
+    Hay ocaciones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
+]
+
+.pull-right[
+![An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview/http-layers.png)
+
+Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
+]
+
+
+---
+
+
+## ¿Cómo es una página html?
+
+.pull-left[
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Título de página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Un encabezado&lt;/h1&gt;
+  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+  &lt;img src='./images/dog.jpg' width='100' height='100'&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+]
+
+.pull-right.font70[
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Título de página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Un encabezado&lt;/h1&gt;
+  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+  &lt;img src='./images/dog.jpg' width='100' height='100'&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+```
+]
+
+
+---
+
+## ¿Cómo es una página html? Jerarquía
+
+Una página web tiene una estructura jerárquica.
+
+.pull-left[
+
+- *Elementos*: tags como `title` o `p` que parten y terminan
+  
+- *Atributos*: `id` o `class`
+  
+- *Contenido*: Lo que queda dentro de los elementos.
+]
+
+.pull-right.font70[
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Título de página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Un encabezado&lt;/h1&gt;
+  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+  &lt;img src='./images/dog.jpg' width='100' height='100'&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+```
+]
+
+
+---
+
+## ¿Cómo es una página html? Elementos
+
+Elementos de `html`
+
+.pull-left[
+- Los elementos se *abren* y *cierran*, en general
+
+  .font70[
+```html
+&lt;tagname&gt;Contenido…&lt;/tagname&gt;
+```
+]
+
+- `h#`: encabezados. Niveles de `h1` a `h6`
+  
+- `p`: párrafos
+  
+- `img`: imagen. Requiere el atributo `src` (no tiene cierre)
+  
+- `table`: tablas
+  
+- `a`: link (*anchor*). Requiere el atributo `href`
+  
+- `&lt;br&gt;`: salto de línea (no tiene cierre)
+
+]
+
+.pull-right.font70[
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Título de página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Un encabezado&lt;/h1&gt;
+  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+  &lt;img src='./images/dog.jpg' width='100' height='100'&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+```
+
+[HTML Elements](https://www.w3schools.com/html/html_elements.asp)
+]
+
+
+---
+class: fullscreen, center, middle
+
+# Nuestro primer scrapping
+
+
+---
+
+## Nuestro primer scrapping: lectura contenido
+
+Leamos la [página web](./class_1_files/mi_primer_scrapping.html) que hemos revisado.
+
+
+```r
+library(rvest)
+url &lt;- 'class_1_files/mi_primer_scrapping.html'
+
+html &lt;- read_html(x = url)
+html
+```
+
+```
+## {html_document}
+## &lt;html&gt;
+## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;\n&lt;meta charset="utf-8"&gt;\n&lt;title&gt;Título de página&lt;/title&gt;\n&lt;/head&gt;\n
+## [2] &lt;body&gt;\n  &lt;h1 id="first"&gt;Un encabezado&lt;/h1&gt;\n  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;\n  &lt;img src="../images/dog.jpg" width="100" height="100"&gt;\n&lt; ...
+```
+
+Capturamos el contenido de la página.
+
+
+---
+
+## Nuestro primer scrapping: extraer elementos
+
+Capturamos el contenido de la página.
+
+- El *body*
+
+
+```r
+html |&gt; html_element('body')
+```
+
+```
+## {html_node}
+## &lt;body&gt;
+## [1] &lt;h1 id="first"&gt;Un encabezado&lt;/h1&gt;
+## [2] &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+## [3] &lt;img src="../images/dog.jpg" width="100" height="100"&gt;
+```
+
+- El párrafo
+
+
+```r
+html |&gt; html_element('p')
+```
+
+```
+## {html_node}
+## &lt;p&gt;
+## [1] &lt;b&gt;texto en negrita&lt;/b&gt;
+```
+
+
+---
+
+## Nuestro primer scrapping: extraer elementos
+
+Capturamos el contenido de la página.
+
+- El texto del elemento identificado con `id = first`
+
+
+```r
+html |&gt; html_element('#first') |&gt; html_text()
+```
+
+```
+## [1] "Un encabezado"
+```
+
+- El link a la imágen. Atributo `src` dentro de elemento `img`
+
+
+```r
+html |&gt; html_element('img') |&gt; html_attr('src')
+```
+
+```
+## [1] "../images/dog.jpg"
+```
+
+- Todos los atributos relacionados con la imagen.
+
+
+```r
+html |&gt; html_element('img') |&gt; html_attrs()
+```
+
+```
+##                 src               width              height 
+## "../images/dog.jpg"               "100"               "100"
+```
+
+
+---
+
+## Librerías: rvest
+
+[Referencia](https://rvest.tidyverse.org/reference/index.html) de funciones en [rvest](https://rvest.tidyverse.org/reference/index.html) a tener en cuenta
+
+- `xlm2::read_html()`: función exportada por rvest para leer páginas web.
+
+- `html_attr()` `html_attrs()`: extraemos atributos
+
+- `html_children()`: extrae elementos bajo cierto nodo
+
+- `html_element()` `html_elements()`: extrae elementos
+
+- `html_name()`: extrae el nombre de elementos
+
+- `html_table()`: extrae y transforma a una data frame una tabla html
+
+- `html_text()` `html_text2()`: extrae texto o contenido
+
+
+```r
+html |&gt; html_element('body') |&gt; html_children() |&gt; html_name()
+```
+
+```
+## [1] "h1"  "p"   "img"
+```
+
+
+---
+
+## Starwars
+
+Recaudación y crítica según datos en [Wikipedia](https://es.wikipedia.org/wiki/Star_Wars)
+
+
+```r
+url &lt;- 'https://es.wikipedia.org/wiki/Star_Wars'
+html &lt;- read_html(url)
+
+df_tablas &lt;- html |&gt; 
+  html_elements('table.wikitable') |&gt;  html_table()
+
+df_tablas |&gt; str(1)
+```
+
+```
+## List of 7
+##  $ : tibble [16 × 7] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [29 × 6] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [5 × 7] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [49 × 10] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [17 × 6] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [13 × 8] (S3: tbl_df/tbl/data.frame)
+##  $ : tibble [14 × 4] (S3: tbl_df/tbl/data.frame)
+```
+
+Hay 7 tablas en la página.
+
+
+---
+
+## Starwars: tablas con datos
+
+Interesa la tabla 5 de recaudación y 6 de evaluación.
+
+
+```r
+df_tablas[[5]] |&gt; head(3)
+```
+
+```
+## # A tibble: 3 × 6
+##   Película                                            Estreno            `Recaudación (en dólares)` `Recaudación (en dólares)` `Recaudación (en d…` `Recaudación (…`
+##   &lt;chr&gt;                                               &lt;chr&gt;              &lt;chr&gt;                      &lt;chr&gt;                      &lt;chr&gt;                &lt;lgl&gt;           
+## 1 Película                                            Estreno            Estados Unidos             Resto del mundo            Total                NA              
+## 2 Star Wars: Episode IV - A New Hope[203]​             25 de mayo de 1977 460.998.507                314.513.557                775.512.064          NA              
+## 3 Star Wars: Episode V - The Empire Strikes Back[204]​ 21 de mayo de 1980 290.271.960                257.607.494                547.879.454          NA
+```
+
+
+```r
+df_tablas[[6]] |&gt; head(3)
+```
+
+```
+## # A tibble: 3 × 8
+##   Película            `Rotten Tomatoes`       `Rotten Tomatoes` `Rotten Tomatoes` Metacritic           IMDb                       FilmAffinity           CinemaScore
+##   &lt;chr&gt;               &lt;chr&gt;                   &lt;chr&gt;             &lt;chr&gt;             &lt;chr&gt;                &lt;chr&gt;                      &lt;chr&gt;                  &lt;chr&gt;      
+## 1 Película            General                 Top Critics       Audiencia         Metacritic           IMDb                       FilmAffinity           CinemaScore
+## 2 A New Hope          93 % (113 reseñas)[237]​ 90 % (39 reseñas) 96 %              92 (24 reseñas)[238]​ 8,6 (1 044 805 votos)[239]​ 7,9 (130 463 votos)[2… -          
+## 3 Empire Strikes Back 94 % (90 reseñas)[241]​  88 % (24 reseñas) 97 %              82 (25 reseñas)[242]​ 8,8 (972 828 votos)[243]​   8,1 (130 252 votos)[2… -
+```
+
+
+---
+
+## Starwars: recaudación
+
+
+```r
+df_recaudacion &lt;- df_tablas[[5]]
+names(df_recaudacion) &lt;- as.character(df_recaudacion[1, ])
+  
+df_recaudacion &lt;- df_recaudacion |&gt; 
+  filter(str_detect(Película, 'Star Wars')) |&gt; 
+  mutate(across(3:5, str_remove_all, '\\.'), # Eliminar '.' en números
+         across(3:5, as.integer))
+```
+
+Modifiqué los nombres de películas
+
+
+```
+## # A tibble: 3 × 6
+##   Película            Estreno            `Estados Unidos` `Resto del mundo`     Total `NA` 
+##   &lt;chr&gt;               &lt;chr&gt;                         &lt;int&gt;             &lt;int&gt;     &lt;int&gt; &lt;lgl&gt;
+## 1 A New Hope          25 de mayo de 1977        460998507         314513557 775512064 NA   
+## 2 Empire Strikes Back 21 de mayo de 1980        290271960         257607494 547879454 NA   
+## 3 Return of the Jedi  25 de mayo de 1983        309306177         166040934 475347111 NA
+```
+
+
+---
+
+## Starwars: critica
+
+
+```r
+df_critica &lt;- df_tablas[[6]]
+names(df_critica) &lt;- as.character(df_critica[1, ])
+  
+df_critica &lt;- df_critica |&gt; 
+  filter(!(Película %in% c('Película', 'Promedio'))) |&gt; 
+  mutate(across(2:7, str_extract, '\\d.?\\d'), # capturo las notas
+         across(6:7, str_replace, '\\,', '\\.'), # reemplazo ',' por '.'
+         across(2:5, as.integer)) # transformo strings a numeros.
+
+df_critica |&gt; head(4)
+```
+
+```
+## # A tibble: 4 × 8
+##   Película            General `Top Critics` Audiencia Metacritic IMDb  FilmAffinity CinemaScore
+##   &lt;chr&gt;                 &lt;int&gt;         &lt;int&gt;     &lt;int&gt;      &lt;int&gt; &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;      
+## 1 A New Hope               93            90        96         92 8.6   7.9          -          
+## 2 Empire Strikes Back      94            88        97         82 8.8   8.1          -          
+## 3 Return of the Jedi       80            76        94         58 8.3   7.9          -          
+## 4 The Phantom Menace       55            41        59         51 6.5   6.2          A-
+```
+
+
+---
+
+## Starwars: recaudación y crítica
+
+Uniremos ambas tablas.
+
+.font70[
+
+```r
+df_cyr &lt;- left_join(df_critica, df_recaudacion, by = 'Película')
+
+ggplot(df_cyr,
+       aes(x = Total, y = General)) + 
+  geom_point(size = rel(3)) +
+  ggrepel::geom_label_repel(aes(label = Película)) +
+  scale_x_continuous('Millones de dólares', labels = ~scales::dollar(., scale = 0.000001)) + 
+  labs(title = 'Star Wars: Relación entre recaudación total y crítica (Rottentomatos)')
+```
+
+![](class_1_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+]
+
+
+---
+
+## En la próximo taller .... 
+
+- Manejo de listas
+
+- [purrr](https://purrr.tidyverse.org)
+
+- dplyr, [operaciones por fila](https://dplyr.tidyverse.org/articles/rowwise.html)
+
+    
+---
+class: fullscreen,left, center, middle, text-azzurro
+background-image: url("images/bicicleta.jpg")
+
+.huge[R se aprende usando&lt;br&gt; y preguntando]
+
+*Mauricio Bucca*
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
