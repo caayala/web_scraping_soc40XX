@@ -18,7 +18,7 @@ Ponderación
 : 20% de la nota final del curso
 
 Formato
-: Desarrollar esta tarea en un Rmarkdown, agregando comentarios cuando sea necesario.
+: Desarrollar esta tarea en un Rmarkdown generando un `.pdf`, agregando comentarios cuando sea necesario.
 
 ### Objetivo: 
 
@@ -37,6 +37,6 @@ Capturar la información presente en la página <https://www.scrapethissite.com/
 
 3) Listar los nombres de países desde el con menor población al con mayor población.
 
-4) Agregar a la base de datos el dato `continente` para cada país según la base de datos [countryName_continent.csv](homework/c_1_files/countryName_continent.csv) disponible en el repositorio.
+4) Agregar a la base de datos el dato `continente` para cada país según la base de datos [countryName_continent.csv](c_1_files/countryName_continent.csv) disponible en el repositorio.
 
 5) Graficar la relación entre superficie (eje x) y población (eje y) coloreando cada país según el continente al que pertenezca según la base de datos `continente`.
