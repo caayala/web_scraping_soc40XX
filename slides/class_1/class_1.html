@@ -32,7 +32,7 @@ class: center, middle, inverse, title-slide
 
 
 
-## Espectativas y nivelación
+## Expectativas y nivelación
 
 - ¿Cuál fue su motivación para tomar este curso?
 
@@ -210,7 +210,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 .pull-left[
 * Acá se ven las capas de protocolos que componen *la web*.
 
-* Es extensible: se puede construir servicios unos sobre otros.
+* Es extensible: se pueden construir servicios unos sobre otros.
 
 * Para nuestro interés nos interesa la parte superior: `html`, `css`, `API` y `javascript`. 
 ]
@@ -236,7 +236,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 
 - `javascript`: faculta a que una página web contenga programas ([¡wordle!](https://www.nytimes.com/games/wordle/index.html)).  
 
-    Hay ocaciones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
+    Hay ocasiones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
 ]
 
 .pull-right[
@@ -376,6 +376,20 @@ Leamos la [página web](./class_1_files/mi_primer_scrapping.html) que hemos revi
 
 ```r
 library(rvest)
+```
+
+```
+## 
+## Attaching package: 'rvest'
+```
+
+```
+## The following object is masked from 'package:readr':
+## 
+##     guess_encoding
+```
+
+```r
 url &lt;- 'class_1_files/mi_primer_scrapping.html'
 
 html &lt;- read_html(x = url)
@@ -385,8 +399,8 @@ html
 ```
 ## {html_document}
 ## &lt;html&gt;
-## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;\n&lt;meta charset="utf-8"&gt;\n&lt;title&gt;Título de página&lt;/title&gt;\n&lt;/head&gt;\n
-## [2] &lt;body&gt;\n  &lt;h1 id="first"&gt;Un encabezado&lt;/h1&gt;\n  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;\n  &lt;img src="../images/dog.jpg" width="100" height="100"&gt;\n&lt; ...
+## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8 ...
+## [2] &lt;body&gt;\n  &lt;h1 id="first"&gt;Un encabezado&lt;/h1&gt;\n  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;te ...
 ```
 
 Capturamos el contenido de la página.
@@ -542,11 +556,12 @@ df_tablas[[5]] |&gt; head(3)
 
 ```
 ## # A tibble: 3 × 6
-##   Película                                            Estreno            `Recaudación (en dólares)` `Recaudación (en dólares)` `Recaudación (en d…` `Recaudación (…`
-##   &lt;chr&gt;                                               &lt;chr&gt;              &lt;chr&gt;                      &lt;chr&gt;                      &lt;chr&gt;                &lt;lgl&gt;           
-## 1 Película                                            Estreno            Estados Unidos             Resto del mundo            Total                NA              
-## 2 Star Wars: Episode IV - A New Hope[203]​             25 de mayo de 1977 460.998.507                314.513.557                775.512.064          NA              
-## 3 Star Wars: Episode V - The Empire Strikes Back[204]​ 21 de mayo de 1980 290.271.960                257.607.494                547.879.454          NA
+##   Película            Estreno `Recaudación (…` `Recaudación (…` `Recaudación (…`
+##   &lt;chr&gt;               &lt;chr&gt;   &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;           
+## 1 Película            Estreno Estados Unidos   Resto del mundo  Total           
+## 2 Star Wars: Episode… 25 de … 460.998.507      314.513.557      775.512.064     
+## 3 Star Wars: Episode… 21 de … 290.271.960      257.607.494      547.879.454     
+## # … with 1 more variable: `Recaudación (en dólares)` &lt;chr&gt;
 ```
 
 
@@ -556,11 +571,12 @@ df_tablas[[6]] |&gt; head(3)
 
 ```
 ## # A tibble: 3 × 8
-##   Película            `Rotten Tomatoes`       `Rotten Tomatoes` `Rotten Tomatoes` Metacritic           IMDb                       FilmAffinity           CinemaScore
-##   &lt;chr&gt;               &lt;chr&gt;                   &lt;chr&gt;             &lt;chr&gt;             &lt;chr&gt;                &lt;chr&gt;                      &lt;chr&gt;                  &lt;chr&gt;      
-## 1 Película            General                 Top Critics       Audiencia         Metacritic           IMDb                       FilmAffinity           CinemaScore
-## 2 A New Hope          93 % (113 reseñas)[237]​ 90 % (39 reseñas) 96 %              92 (24 reseñas)[238]​ 8,6 (1 044 805 votos)[239]​ 7,9 (130 463 votos)[2… -          
-## 3 Empire Strikes Back 94 % (90 reseñas)[241]​  88 % (24 reseñas) 97 %              82 (25 reseñas)[242]​ 8,8 (972 828 votos)[243]​   8,1 (130 252 votos)[2… -
+##   Película   `Rotten Tomato…` `Rotten Tomato…` `Rotten Tomato…` Metacritic IMDb 
+##   &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;      &lt;chr&gt;
+## 1 Película   General          Top Critics      Audiencia        Metacritic IMDb 
+## 2 A New Hope 93 % (113 reseñ… 90 % (39 reseña… 96 %             92 (24 re… 8,6 …
+## 3 Empire St… 94 % (90 reseña… 88 % (24 reseña… 97 %             82 (25 re… 8,8 …
+## # … with 2 more variables: FilmAffinity &lt;chr&gt;, CinemaScore &lt;chr&gt;
 ```
 
 
@@ -584,11 +600,11 @@ Modifiqué los nombres de películas
 
 ```
 ## # A tibble: 3 × 6
-##   Película            Estreno            `Estados Unidos` `Resto del mundo`     Total `NA` 
-##   &lt;chr&gt;               &lt;chr&gt;                         &lt;int&gt;             &lt;int&gt;     &lt;int&gt; &lt;lgl&gt;
-## 1 A New Hope          25 de mayo de 1977        460998507         314513557 775512064 NA   
-## 2 Empire Strikes Back 21 de mayo de 1980        290271960         257607494 547879454 NA   
-## 3 Return of the Jedi  25 de mayo de 1983        309306177         166040934 475347111 NA
+##   Película            Estreno     `Estados Unidos` `Resto del mun…`  Total `NA` 
+##   &lt;chr&gt;               &lt;chr&gt;                  &lt;int&gt;            &lt;int&gt;  &lt;int&gt; &lt;lgl&gt;
+## 1 A New Hope          25 de mayo…        460998507        314513557 7.76e8 NA   
+## 2 Empire Strikes Back 21 de mayo…        290271960        257607494 5.48e8 NA   
+## 3 Return of the Jedi  25 de mayo…        309306177        166040934 4.75e8 NA
 ```
 
 
@@ -612,12 +628,13 @@ df_critica |&gt; head(4)
 
 ```
 ## # A tibble: 4 × 8
-##   Película            General `Top Critics` Audiencia Metacritic IMDb  FilmAffinity CinemaScore
-##   &lt;chr&gt;                 &lt;int&gt;         &lt;int&gt;     &lt;int&gt;      &lt;int&gt; &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;      
-## 1 A New Hope               93            90        96         92 8.6   7.9          -          
-## 2 Empire Strikes Back      94            88        97         82 8.8   8.1          -          
-## 3 Return of the Jedi       80            76        94         58 8.3   7.9          -          
-## 4 The Phantom Menace       55            41        59         51 6.5   6.2          A-
+##   Película         General `Top Critics` Audiencia Metacritic IMDb  FilmAffinity
+##   &lt;chr&gt;              &lt;int&gt;         &lt;int&gt;     &lt;int&gt;      &lt;int&gt; &lt;chr&gt; &lt;chr&gt;       
+## 1 A New Hope            93            90        96         92 8.6   7.9         
+## 2 Empire Strikes …      94            88        97         82 8.8   8.1         
+## 3 Return of the J…      80            76        94         58 8.3   7.9         
+## 4 The Phantom Men…      55            41        59         51 6.5   6.2         
+## # … with 1 more variable: CinemaScore &lt;chr&gt;
 ```
 
 
@@ -640,7 +657,7 @@ ggplot(df_cyr,
   labs(title = 'Star Wars: Relación entre recaudación total y crítica (Rottentomatos)')
 ```
 
-![](class_1_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+![](class_1_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
 ]
 
 
@@ -656,8 +673,7 @@ ggplot(df_cyr,
 
     
 ---
-class: fullscreen,left, center, middle, text-azzurro
-background-image: url("images/bicicleta.jpg")
+class: fullscreen,left, center, middle
 
 .huge[R se aprende usando&lt;br&gt; y preguntando]
 
@@ -668,7 +684,8 @@ background-image: url("images/bicicleta.jpg")
 class: inverse, middle
 
 Presentación y código en GitHub:  
-&lt;https://github.com/caayala/web_scraping_soc40XX&gt;
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+&lt;https://caayala.github.io/web_scraping_soc40XX&gt;
 
 
 ---
@@ -682,6 +699,7 @@ class: inverse, center, middle
 Cristián Ayala  
 &lt;https://blog.desuc.cl/&gt;  
 &lt;http://github.com/caayala&gt;
+
 
 
 

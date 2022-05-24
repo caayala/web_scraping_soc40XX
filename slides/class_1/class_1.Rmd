@@ -20,13 +20,13 @@ editor_options:
 
 ```{r}
 #| echo = FALSE
-library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
 library(knitr)
 opts_chunk$set(cache.path = "class_1_files/class_1_cache/html/")
 ```
 
 
-## Espectativas y nivelación
+## Expectativas y nivelación
 
 - ¿Cuál fue su motivación para tomar este curso?
 
@@ -204,7 +204,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 .pull-left[
 * Acá se ven las capas de protocolos que componen *la web*.
 
-* Es extensible: se puede construir servicios unos sobre otros.
+* Es extensible: se pueden construir servicios unos sobre otros.
 
 * Para nuestro interés nos interesa la parte superior: `html`, `css`, `API` y `javascript`. 
 ]
@@ -230,7 +230,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 
 - `javascript`: faculta a que una página web contenga programas ([¡wordle!](https://www.nytimes.com/games/wordle/index.html)).  
 
-    Hay ocaciones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
+    Hay ocasiones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
 ]
 
 .pull-right[
@@ -453,7 +453,7 @@ html |> html_element('body') |> html_children() |> html_name()
 
 Recaudación y crítica según datos en [Wikipedia](https://es.wikipedia.org/wiki/Star_Wars)
 
-```{r starwars_web}
+```{r}
 #| cache = TRUE
 url <- 'https://es.wikipedia.org/wiki/Star_Wars'
 html <- read_html(url)
@@ -573,7 +573,8 @@ class: fullscreen,left, center, middle
 class: inverse, middle
 
 Presentación y código en GitHub:  
-<https://github.com/caayala/web_scraping_soc40XX>
+<https://github.com/caayala/web_scraping_soc40XX>  
+<https://caayala.github.io/web_scraping_soc40XX>
 
 
 ---
@@ -589,12 +590,13 @@ Cristián Ayala
 <http://github.com/caayala>
 
 
-```{r code-extract}
-#| echo = FALSE
+```{r}
+#| echo = FALSE,
+#| include = FALSE
 
 # Extraer código R
-knitr::purl('slides/class_1/class_1.Rmd',
-            output = 'slides/class_1/class_1.R',
+knitr::purl('class_1.Rmd',
+            output = 'class_1.R',
             quiet = TRUE)
 ```
 
