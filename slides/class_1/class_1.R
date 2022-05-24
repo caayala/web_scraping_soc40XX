@@ -1,5 +1,5 @@
 ## -----------------------------------------------------------------------------
-suppressMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tidyverse))
 library(knitr)
 opts_chunk$set(cache.path = "class_1_files/class_1_cache/html/")
 
