@@ -26,7 +26,7 @@ opts_chunk$set(cache.path = "class_1_files/class_1_cache/html/")
 ```
 
 
-## Espectativas y nivelación
+## Expectativas y nivelación
 
 - ¿Cuál fue su motivación para tomar este curso?
 
@@ -204,7 +204,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 .pull-left[
 * Acá se ven las capas de protocolos que componen *la web*.
 
-* Es extensible: se puede construir servicios unos sobre otros.
+* Es extensible: se pueden construir servicios unos sobre otros.
 
 * Para nuestro interés nos interesa la parte superior: `html`, `css`, `API` y `javascript`. 
 ]
@@ -230,7 +230,7 @@ Fuente: [https://developer.mozilla.org](https://developer.mozilla.org/en-US/docs
 
 - `javascript`: faculta a que una página web contenga programas ([¡wordle!](https://www.nytimes.com/games/wordle/index.html)).  
 
-    Hay ocaciones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
+    Hay ocasiones que es ese programa el que pide, procesa y/o muestra los datos que nos interesa.
 ]
 
 .pull-right[
