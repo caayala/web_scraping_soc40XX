@@ -20,7 +20,7 @@ editor_options:
 
 ```{r}
 #| echo = FALSE
-library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
 library(knitr)
 opts_chunk$set(cache.path = "class_1_files/class_1_cache/html/")
 ```
@@ -453,7 +453,7 @@ html |> html_element('body') |> html_children() |> html_name()
 
 Recaudación y crítica según datos en [Wikipedia](https://es.wikipedia.org/wiki/Star_Wars)
 
-```{r starwars_web}
+```{r}
 #| cache = TRUE
 url <- 'https://es.wikipedia.org/wiki/Star_Wars'
 html <- read_html(url)
@@ -573,7 +573,8 @@ class: fullscreen,left, center, middle
 class: inverse, middle
 
 Presentación y código en GitHub:  
-<https://github.com/caayala/web_scraping_soc40XX>
+<https://github.com/caayala/web_scraping_soc40XX>  
+<https://caayala.github.io/web_scraping_soc40XX>
 
 
 ---
@@ -589,12 +590,13 @@ Cristián Ayala
 <http://github.com/caayala>
 
 
-```{r code-extract}
-#| echo = FALSE
+```{r}
+#| echo = FALSE,
+#| include = FALSE
 
 # Extraer código R
-knitr::purl('slides/class_1/class_1.Rmd',
-            output = 'slides/class_1/class_1.R',
+knitr::purl('class_1.Rmd',
+            output = 'class_1.R',
             quiet = TRUE)
 ```
 
