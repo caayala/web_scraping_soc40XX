@@ -1,0 +1,243 @@
+---
+title: "Trabajo con listas y expresiones regulares"
+subtitle: "Web Scrapping y acceso a datos desde la web con R"
+author: "<br>Cristián Ayala<br> Director DESUC"
+date: "[github.com/caayala](https://github.com/caayala)"
+output:
+  xaringan::moon_reader:
+    lib_dir: "libs"
+    css: ["default", "default-fonts", "../gentle-r.css"]
+    df_print: default
+    nature:
+      ratio: 16:9
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+      slideNumberFormat: "%current%"
+editor_options: 
+  chunk_output_type: console
+---
+layout: false
+
+
+## Hoy veremos
+
+- La manipulación de datos jerárquicos desde la web es análoga al trabajo con listas.
+
+- Repaso de [`purrr`](https://purrr.tidyverse.org).
+
+- Repaso de [`stringr`](https://stringr.tidyverse.org).
+
+
+---
+
+## Motivación
+
+- Desde una página web, encontraremos situaciones en las que vamos a obtener listas de objetos de texto que deben ser procesados.
+
+- Para trabajar con listas directamente en R usaremos funciones del paquete `purrr`.
+
+- Para procesar texto usaremos el paquete `stringr`.
+
+---
+class: fullscreen, left, middle, invert
+
+## Manipulación de listas
+
+.huge[`purrr`]
+
+
+---
+
+## purrr: guía
+
+.pull-left[
+La función principal es `map` y su idea general es:
+
+para cada .text-mono[__objeto en la lista__] haga .text-mono[__función__]
+
+]
+
+.pull-right[
+![imagen cheatsheets](https://raw.githubusercontent.com/rstudio/cheatsheets/main/pngs/purrr.png)
+
+[cheatsheets](https://raw.githubusercontent.com/rstudio/cheatsheets/main/purrr.pdf)
+]
+
+
+---
+
+## purrr: fundamento
+
+.pull-left.font70[
+
+lista de ejemplo
+
+```{r}
+(l <-  list(a = c('caso' = 1:2),
+            b = c('caso' = 4:5)))
+```
+
+Suma de cada elemento de la lista.
+
+```{r}
+l |> purrr::map(sum)
+```
+]
+
+.pull-right.font70[
+
+Extracción del elemento `caso2`
+
+```{r}
+l |> purrr::map('caso2')
+```
+
+Transformación de lista a tibble
+
+```{r}
+tibble::enframe(l)
+```
+]
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Manipulación de texto
+
+.huge[`stringr`]
+
+
+---
+
+## stringr: guía
+
+.pull-left[
+Las funciones de stringr permiten manipular texto según [expresiones regulares](https://es.wikipedia.org/wiki/Expresión_regular).
+
+Con ellas podemos definir patrones de búsqueda de texto.
+
+]
+
+.pull-right[
+![imagen cheatsheets](https://github.com/rstudio/cheatsheets/raw/main/pngs/strings.png)
+
+[cheatsheets](https://github.com/rstudio/cheatsheets/raw/main/strings.pdf)
+]
+
+
+---
+
+## stringr: fundamento
+
+```{r, include=FALSE}
+library(stringr)
+```
+
+.pull-left.font70[
+
+```{r}
+texto <- c('Viernes Santo', 'Sábado Santo', 
+           'Elección 1', '18 septiembre')
+```
+
+Detectar elementos:
+
+```{r}
+str_detect(texto, 'Elección')
+```
+
+Obtener solo elementos detectados:
+
+```{r}
+str_subset(texto, 'Santo')
+```
+
+Extraer texto:
+
+```{r}
+str_extract(texto, '\\d+') # números
+```
+
+Reemplazo:
+
+```{r}
+str_replace(texto, 'Santo', 'Cristiano')
+```
+]
+
+.pull-right.font70[
+
+Reemplazo de un grupo de texto:
+
+```{r}
+str_replace(texto, '(.*) Santo', '\\1')
+```
+
+```{r}
+str_replace(texto, '(.*) (Santo)', '\\2_\\1')
+```
+
+Remover texto:
+
+```{r}
+str_remove(texto, ' ')
+```
+
+```{r}
+str_remove(texto, '[aeiou]')
+```
+
+```{r}
+str_remove_all(texto, '[aeiou]')
+```
+]
+
+
+---
+
+## Taller: ejemplo feriados
+
+JSON con un listado de feriados en Chile
+
+```{r}
+url <- 'https://apis.digital.gob.cl/fl/feriados'
+jsonlite::read_json(url) |> (function(x)x[1:2])() |> str(2)
+```
+
+Vamos al [código](class_2_taller.R).
+
+
+---
+
+## Recursos adicionales
+
+- [Tutorial de purrr](https://github.com/cwickham/purrr-tutorial) por Charlotte Wickham
+
+- Paquete con listas de ejemplo en [repurrrsive](https://github.com/jennybc/repurrrsive)
+
+- Pruebas de expresiones regulares: [regex101](https://regex101.com)
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+<https://github.com/caayala/web_scraping_soc40XX>
+
+<https://caayala.github.io/web_scraping_soc40XX/>
+
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+<br>
+Cristián Ayala  
+<https://blog.desuc.cl/>  
+<http://github.com/caayala>
