@@ -49,13 +49,11 @@ l_feriados |> str()
 # 1 nivel
 l_feriados |> str(1)
 
-# 2 niveles de los primeros 2 elementos
+# Los primeros 2 elementos de l_feriados para luego ver los 2 niveles.
 l_feriados[1:2] |> str(2)
 
 # Profundidad máxima de la lista. 
 vec_depth(l_feriados) #Tiene un máximo de 5 niveles.
-
-
 
 
 ## Extraer elementos ----
@@ -156,9 +154,6 @@ l_feriados |> map(assign_in, list('comentarios'), 'nuevo comentario')
 
 
 # Modifico comentarios para limpiarlos: 3 tipos de comentarios.
-
-l_feriados[[144]]$nombre
-
 l_feriados[[144]]$comentarios #' '
 l_feriados[[160]]$comentarios #''
 l_feriados[[183]]$comentarios #NULL
