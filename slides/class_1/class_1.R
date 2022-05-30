@@ -6,7 +6,7 @@ opts_chunk$set(cache.path = "class_1_files/class_1_cache/html/")
 
 ## -----------------------------------------------------------------------------
 library(rvest)
-url <- 'class_1_files/mi_primer_scrapping.html'
+url <- 'class_1_files/mi_primer_scraping.html'
 
 html <- read_html(x = url)
 html

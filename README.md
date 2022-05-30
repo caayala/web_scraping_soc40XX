@@ -1,12 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-### Web Scrapping y acceso a datos desde la web
+### Web Scraping y acceso a datos desde la web
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-Este repositorio contiene el material del curso Web Scrapping y acceso a
+Este repositorio contiene el material del curso Web Scraping y acceso a
 datos desde la web, dictado el primer semestre de 2022 por el
 Departamento de Sociología de la Universidad Católica de Chile a
 estudiantes de educación continua como parte del

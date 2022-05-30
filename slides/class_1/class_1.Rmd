@@ -1,6 +1,6 @@
 ---
 title: "Introducción"
-subtitle: "Web Scrapping y acceso a datos desde la web con R"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
 author: "<br>Cristián Ayala<br> Director DESUC"
 date: "[github.com/caayala](https://github.com/caayala)"
 output:
@@ -108,7 +108,7 @@ Ej: Comparar precios en un sitio como [Knasta](https://knasta.cl).
 ]
 
 .pull-right[
-![Usos de web scrapping](https://miro.medium.com/max/1132/1*G_HA1qyqT9aqmLoh3bWwTw.png)
+![Usos de web scraping](https://miro.medium.com/max/1132/1*G_HA1qyqT9aqmLoh3bWwTw.png)
 ]
 
 
@@ -358,18 +358,18 @@ Elementos de `html`
 ---
 class: fullscreen, center, middle
 
-# Nuestro primer scrapping
+# Nuestro primer scraping
 
 
 ---
 
-## Nuestro primer scrapping: lectura contenido
+## Nuestro primer scraping: lectura contenido
 
-Leamos la [página web](./class_1_files/mi_primer_scrapping.html) que hemos revisado.
+Leamos la [página web](./class_1_files/mi_primer_scraping.html) que hemos revisado.
 
 ```{r}
 library(rvest)
-url <- 'class_1_files/mi_primer_scrapping.html'
+url <- 'class_1_files/mi_primer_scraping.html'
 
 html <- read_html(x = url)
 html
@@ -380,7 +380,7 @@ Capturamos el contenido de la página.
 
 ---
 
-## Nuestro primer scrapping: extraer elementos
+## Nuestro primer scraping: extraer elementos
 
 Capturamos el contenido de la página.
 
@@ -399,7 +399,7 @@ html |> html_element('p')
 
 ---
 
-## Nuestro primer scrapping: extraer elementos
+## Nuestro primer scraping: extraer elementos
 
 Capturamos el contenido de la página.
 
