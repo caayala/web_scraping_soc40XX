@@ -77,6 +77,10 @@ strong {
   font-size: 70%;
 }
 
+.font40 {
+  font-size: 40%;
+}
+
 .fullscreen {
   /*background-color: #FAFAFA;*/
   border-top: none;
