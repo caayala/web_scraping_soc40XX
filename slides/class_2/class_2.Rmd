@@ -1,6 +1,6 @@
 ---
-title: "Trabajo con listas y expresiones regulares"
-subtitle: "Web Scrapping y acceso a datos desde la web con R"
+title: "Clase 2: Trabajo con listas y expresiones regulares"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
 author: "<br>Cristián Ayala<br> Director DESUC"
 date: "[github.com/caayala](https://github.com/caayala)"
 output:

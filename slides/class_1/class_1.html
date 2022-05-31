@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Introducción</title>
+    <title>Clase 1: Introducción</title>
     <meta charset="utf-8" />
     <meta name="author" content=" Cristián Ayala  Director DESUC" />
     <script src="libs/header-attrs-2.14/header-attrs.js"></script>
@@ -14,10 +14,10 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# Introducción
+# Clase 1: Introducción
 ]
 .subtitle[
-## Web Scrapping y acceso a datos desde la web con R
+## Web Scraping y acceso a datos desde la web con R
 ]
 .author[
 ### <br>Cristián Ayala<br> Director DESUC
@@ -114,7 +114,7 @@ Ej: Comparar precios en un sitio como [Knasta](https://knasta.cl).
 ]
 
 .pull-right[
-![Usos de web scrapping](https://miro.medium.com/max/1132/1*G_HA1qyqT9aqmLoh3bWwTw.png)
+![Usos de web scraping](https://miro.medium.com/max/1132/1*G_HA1qyqT9aqmLoh3bWwTw.png)
 ]
 
 
@@ -364,14 +364,14 @@ Elementos de `html`
 ---
 class: fullscreen, center, middle
 
-# Nuestro primer scrapping
+# Nuestro primer scraping
 
 
 ---
 
-## Nuestro primer scrapping: lectura contenido
+## Nuestro primer scraping: lectura contenido
 
-Leamos la [página web](./class_1_files/mi_primer_scrapping.html) que hemos revisado.
+Leamos la [página web](./class_1_files/mi_primer_scraping.html) que hemos revisado.
 
 
 ```r
@@ -390,7 +390,7 @@ library(rvest)
 ```
 
 ```r
-url &lt;- 'class_1_files/mi_primer_scrapping.html'
+url &lt;- 'class_1_files/mi_primer_scraping.html'
 
 html &lt;- read_html(x = url)
 html
@@ -408,7 +408,7 @@ Capturamos el contenido de la página.
 
 ---
 
-## Nuestro primer scrapping: extraer elementos
+## Nuestro primer scraping: extraer elementos
 
 Capturamos el contenido de la página.
 
@@ -443,7 +443,7 @@ html |&gt; html_element('p')
 
 ---
 
-## Nuestro primer scrapping: extraer elementos
+## Nuestro primer scraping: extraer elementos
 
 Capturamos el contenido de la página.
 
@@ -665,11 +665,9 @@ ggplot(df_cyr,
 
 ## En la próximo taller .... 
 
-- Manejo de listas
+- Manejo de listas con [purrr](https://purrr.tidyverse.org)
 
-- [purrr](https://purrr.tidyverse.org)
-
-- dplyr, [operaciones por fila](https://dplyr.tidyverse.org/articles/rowwise.html)
+- Manejo de expresiones regulares con [stringr](https://stringr.tidyverse.org)
 
     
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Control 1"
-subtitle: "Web Scrapping y acceso a datos desde la web con R"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
 author: "Cristián Ayala"
 date: "2022-05-26"
 lang: "es"

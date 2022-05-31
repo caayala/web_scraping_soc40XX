@@ -1,5 +1,5 @@
 # title: "Trabajo con listas"
-# subtitle: "Web Scrapping y acceso a datos desde la web con R"
+# subtitle: "Web Scraping y acceso a datos desde la web con R"
 # author: Cristián Ayala
 # date: 2022-05-26
 
@@ -261,7 +261,7 @@ df_feriados_2$comentarios |>
   str_trunc(width = 40) |> table() |> sort()
 
 
-## Webscrapping y el uso de listas ----
+## Webscraping y el uso de listas ----
 # 
 # Capturar feriados por año.
 # Revision de API: https://apis.digital.gob.cl/fl/

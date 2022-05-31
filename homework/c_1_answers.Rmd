@@ -1,5 +1,5 @@
 ---
-title: "Web Scrapping y acceso a datos desde la web con R"
+title: "Web Scraping y acceso a datos desde la web con R"
 author: "Control 1, respuestas"
 output:
   pdf_document: default

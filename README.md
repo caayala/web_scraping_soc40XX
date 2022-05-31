@@ -1,12 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-### Web Scrapping y acceso a datos desde la web
+### Web Scraping y acceso a datos desde la web
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-Este repositorio contiene el material del curso Web Scrapping y acceso a
+Este repositorio contiene el material del curso Web Scraping y acceso a
 datos desde la web, dictado el primer semestre de 2022 por el
 Departamento de Sociología de la Universidad Católica de Chile a
 estudiantes de educación continua como parte del
@@ -29,7 +29,7 @@ Tendremos clases teóricas (T) y prácticas (P).
 |------:|:-----------|:-----|:---------------------------------------------------|:-----------------------------------------------------------------------------------------------|:-------------|:--------------------|:------------------------------------------------------------------------------------------------------------|
 |     1 | 2022-05-24 | T    | Introducción a Web Scraping                        | [`rvest`](https://rvest.tidyverse.org)                                                         |              |                     | [Slides](slides/class_1/class_1#1) [.Rmd](slides/class_1/class_1.Rmd)                                       |
 |     2 | 2022-05-26 | P    | Repaso R: manejo de listas y expresiones regulares | [`purrr`](https://purrr.tidyverse.org) [`stringr`](https://stringr.tidyverse.org)              |              |                     | [Slides](slides/class_2/class_2#1) [.Rmd](slides/class_2/class_2.Rmd) [.R](slides/class_2/class_2_taller.R) |
-|     3 | 2022-05-31 | T    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         |              |                     |                                                                                                             |
+|     3 | 2022-05-31 | T    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         |              |                     | [Slides](slides/class_3/class_3#1) [.Rmd](slides/class_3/class_3.Rmd)                                       |
 |     4 | 2022-06-02 | P    | Web Scraping                                       | [`rvest`](https://rvest.tidyverse.org)                                                         | C1 (20%)     |                     |                                                                                                             |
 |     5 | 2022-06-07 | T    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       |              |                     |                                                                                                             |
 |     6 | 2022-06-09 | P    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       | C2 (20%)     |                     |                                                                                                             |
