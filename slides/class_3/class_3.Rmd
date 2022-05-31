@@ -307,7 +307,7 @@ La segunda tabla tiene como id: `#tabla-imagen-perros`
 
 ## Scraping: tabla según id 2
 
-Se debe saber como manejar distintas secciones de los datos.
+Se debe saber cómo manejar distintas secciones de los datos.
 
 ```{r}
 # Uso rbind porque tiene menos salvaguardas que `bind_rows`.
@@ -357,7 +357,7 @@ Selección de todos los elementos `<a>` con atributos `href`
 html |> html_elements('a[href]')
 ```
 
-Selección de todos los elementos con atributo `alt` que contenta la palabra *akita*
+Selección de todos los elementos con atributo `alt` que contenga la palabra *akita*
 
 ```{r}
 html |> html_elements('[alt*=akita]')
@@ -455,7 +455,7 @@ df_cat_hojas |>
 
 ---
 
-## En la próximo taller… 
+## En el próximo taller… 
 
 - Ejemplos de captura de sitios web
 
