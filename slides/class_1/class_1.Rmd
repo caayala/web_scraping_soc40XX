@@ -1,5 +1,5 @@
 ---
-title: "Introducción"
+title: "Clase 1: Introducción"
 subtitle: "Web Scraping y acceso a datos desde la web con R"
 author: "<br>Cristián Ayala<br> Director DESUC"
 date: "[github.com/caayala](https://github.com/caayala)"
@@ -554,11 +554,9 @@ ggplot(df_cyr,
 
 ## En la próximo taller .... 
 
-- Manejo de listas
+- Manejo de listas con [purrr](https://purrr.tidyverse.org)
 
-- [purrr](https://purrr.tidyverse.org)
-
-- dplyr, [operaciones por fila](https://dplyr.tidyverse.org/articles/rowwise.html)
+- Manejo de expresiones regulares con [stringr](https://stringr.tidyverse.org)
 
     
 ---
