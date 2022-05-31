@@ -83,7 +83,7 @@ html <- read_html(paste0(url, 'index.html'))
 
 
 ## -----------------------------------------------------------------------------
-l_cat <- html |> html_elements('.side_categories a')
+l_cat <- html |> html_elements('ul.nav ul a')
 
 head(l_cat, 2)
 
@@ -96,7 +96,7 @@ df_cat <- tibble(categoria = l_cat |> html_text(),
 head(df_cat, 2)
 
 
-## ---- cache=TRUE--------------------------------------------------------------
+## -----------------------------------------------------------------------------
 df_cat_hojas <- df_cat |> 
   rowwise() |> 
   mutate(pagina = list(read_html(paste0(url, link))))
@@ -119,7 +119,6 @@ df_cat_hojas |> head(3)
 
 ## ---- fig.dim=c(14, 4)--------------------------------------------------------
 df_cat_hojas |> 
-  filter(n_libros < 1000) |> 
   ggplot(aes(x = fct_reorder(categoria, -n_libros), y = n_libros)) + 
   geom_col() + 
   scale_x_discrete(NULL, guide = guide_axis(angle = 90)) +

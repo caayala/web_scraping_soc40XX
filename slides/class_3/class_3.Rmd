@@ -239,7 +239,7 @@ html |> html_elements('table') |> html_table()
 
 * `tag.class`: elementos de tipo `tag` de clase `class`
 
-Se pueden probar varios selectores [acá](https://www.w3schools.com/CSSref/trysel.asp) y probar las habilidades en [CSS Diner](https://flukeout.github.io)
+Se revisar su funcionamiento [acá](https://www.w3schools.com/CSSref/trysel.asp) y entrenar habilidades en [CSS Diner](https://flukeout.github.io)
 
 
 ---
@@ -377,10 +377,10 @@ url <- 'http://books.toscrape.com/'
 html <- read_html(paste0(url, 'index.html'))
 ```
 
-Selección en columna de categorías de clase `.side_categories` los links `<a>`:
+Selección de los elementos `<ul>` dentro de la columna `<ul>` de clase `nav`. Luego extraigo los links `<a>`:
 
 ```{r}
-l_cat <- html |> html_elements('.side_categories a')
+l_cat <- html |> html_elements('ul.nav ul a')
 
 head(l_cat, 2)
 ```
@@ -407,7 +407,7 @@ head(df_cat, 2)
 
 Leamos todas las páginas referidas en los links usando `rowwise()`.
 
-```{r, cache=TRUE}
+```{r}
 df_cat_hojas <- df_cat |> 
   rowwise() |> 
   mutate(pagina = list(read_html(paste0(url, link))))
@@ -415,7 +415,7 @@ df_cat_hojas <- df_cat |>
 head(df_cat_hojas, 3)
 ```
 
-¿Cómo detecto el número de libros de cada categoría?
+¿Cómo detecto el número de libros de cada categoría? Número de libros total:
 
 ```{r}
 html |> html_elements('.form-horizontal strong:first-of-type') |> html_text()
@@ -445,7 +445,6 @@ df_cat_hojas |> head(3)
 .font70[
 ```{r, fig.dim=c(14, 4)}
 df_cat_hojas |> 
-  filter(n_libros < 1000) |> 
   ggplot(aes(x = fct_reorder(categoria, -n_libros), y = n_libros)) + 
   geom_col() + 
   scale_x_discrete(NULL, guide = guide_axis(angle = 90)) +

@@ -320,7 +320,7 @@ html |&gt; html_elements('table') |&gt; html_table()
 
 * `tag.class`: elementos de tipo `tag` de clase `class`
 
-Se pueden probar varios selectores [acá](https://www.w3schools.com/CSSref/trysel.asp) y probar las habilidades en [CSS Diner](https://flukeout.github.io)
+Se revisar su funcionamiento [acá](https://www.w3schools.com/CSSref/trysel.asp) y entrenar habilidades en [CSS Diner](https://flukeout.github.io)
 
 
 ---
@@ -519,19 +519,19 @@ url &lt;- 'http://books.toscrape.com/'
 html &lt;- read_html(paste0(url, 'index.html'))
 ```
 
-Selección en columna de categorías de clase `.side_categories` los links `&lt;a&gt;`:
+Selección de los elementos `&lt;ul&gt;` dentro de la columna `&lt;ul&gt;` de clase `nav`. Luego extraigo los links `&lt;a&gt;`:
 
 
 ```r
-l_cat &lt;- html |&gt; html_elements('.side_categories a')
+l_cat &lt;- html |&gt; html_elements('ul.nav ul a')
 
 head(l_cat, 2)
 ```
 
 ```
 ## {xml_nodeset (2)}
-## [1] &lt;a href="catalogue/category/books_1/index.html"&gt;\n                        ...
-## [2] &lt;a href="catalogue/category/books/travel_2/index.html"&gt;\n                 ...
+## [1] &lt;a href="catalogue/category/books/travel_2/index.html"&gt;\n                 ...
+## [2] &lt;a href="catalogue/category/books/mystery_3/index.html"&gt;\n                ...
 ```
 
 
@@ -552,10 +552,10 @@ head(df_cat, 2)
 
 ```
 ## # A tibble: 2 × 2
-##   categoria link                                        
-##   &lt;chr&gt;     &lt;chr&gt;                                       
-## 1 Books     catalogue/category/books_1/index.html       
-## 2 Travel    catalogue/category/books/travel_2/index.html
+##   categoria link                                         
+##   &lt;chr&gt;     &lt;chr&gt;                                        
+## 1 Travel    catalogue/category/books/travel_2/index.html 
+## 2 Mystery   catalogue/category/books/mystery_3/index.html
 ```
 
 
@@ -577,14 +577,14 @@ head(df_cat_hojas, 3)
 ```
 ## # A tibble: 3 × 3
 ## # Rowwise: 
-##   categoria link                                          pagina    
-##   &lt;chr&gt;     &lt;chr&gt;                                         &lt;list&gt;    
-## 1 Books     catalogue/category/books_1/index.html         &lt;xml_dcmn&gt;
-## 2 Travel    catalogue/category/books/travel_2/index.html  &lt;xml_dcmn&gt;
-## 3 Mystery   catalogue/category/books/mystery_3/index.html &lt;xml_dcmn&gt;
+##   categoria          link                                             pagina    
+##   &lt;chr&gt;              &lt;chr&gt;                                            &lt;list&gt;    
+## 1 Travel             catalogue/category/books/travel_2/index.html     &lt;xml_dcmn&gt;
+## 2 Mystery            catalogue/category/books/mystery_3/index.html    &lt;xml_dcmn&gt;
+## 3 Historical Fiction catalogue/category/books/historical-fiction_4/i… &lt;xml_dcmn&gt;
 ```
 
-¿Cómo detecto el número de libros de cada categoría?
+¿Cómo detecto el número de libros de cada categoría? Número de libros total:
 
 
 ```r
@@ -614,11 +614,11 @@ df_cat_hojas |&gt; head(3)
 
 ```
 ## # A tibble: 3 × 4
-##   categoria link                                          pagina     n_libros
-##   &lt;chr&gt;     &lt;chr&gt;                                         &lt;list&gt;        &lt;int&gt;
-## 1 Books     catalogue/category/books_1/index.html         &lt;xml_dcmn&gt;     1000
-## 2 Travel    catalogue/category/books/travel_2/index.html  &lt;xml_dcmn&gt;       11
-## 3 Mystery   catalogue/category/books/mystery_3/index.html &lt;xml_dcmn&gt;       32
+##   categoria          link                                    pagina     n_libros
+##   &lt;chr&gt;              &lt;chr&gt;                                   &lt;list&gt;        &lt;int&gt;
+## 1 Travel             catalogue/category/books/travel_2/inde… &lt;xml_dcmn&gt;       11
+## 2 Mystery            catalogue/category/books/mystery_3/ind… &lt;xml_dcmn&gt;       32
+## 3 Historical Fiction catalogue/category/books/historical-fi… &lt;xml_dcmn&gt;       26
 ```
 
 
@@ -630,7 +630,6 @@ df_cat_hojas |&gt; head(3)
 
 ```r
 df_cat_hojas |&gt; 
-  filter(n_libros &lt; 1000) |&gt; 
   ggplot(aes(x = fct_reorder(categoria, -n_libros), y = n_libros)) + 
   geom_col() + 
   scale_x_discrete(NULL, guide = guide_axis(angle = 90)) +
