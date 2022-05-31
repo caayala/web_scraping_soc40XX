@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Clase 3: Web Scraping páginas estáticas</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Clase 3: Web Scraping páginas estáticas
+]
+.subtitle[
+## Web Scraping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+## Recordemos como es una página html
+
+.pull-left[
+
+- *Elementos*: tags como `title` o `p` que parten y terminan
+  
+- *Atributos*: `id` o `class`
+  
+- *Contenido*: Lo que queda dentro de los elementos.
+]
+
+.pull-right.font70[
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Título de página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Un encabezado&lt;/h1&gt;
+  &lt;p&gt;Algún texto &amp;amp; &lt;b&gt;texto en negrita&lt;/b&gt;.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+```
+]
+
+
+---
+
+## Página web con la que trabajaremos
+
+
+.pull-left[
+- `h#`: encabezados. Niveles de `h1` a `h6`
+  
+- `p`: párrafos
+  
+- `img`: imagen. Requiere el atributo `src` (no tiene cierre)
+  
+- `table`: tablas
+  
+- `a`: link (*anchor*). Requiere el atributo `href`
+  
+- `&lt;br&gt;`: salto de línea (no tiene cierre)
+
+]
+
+.pull-right.font40[
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;!-- CSS externo --&gt;
+    &lt;link rel="stylesheet" href="scraping_con_css.css"&gt;
+
+    &lt;title&gt;Datos de perros&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id='first'&gt;Datos de perros&lt;/h1&gt;
+  &lt;p&gt;Comparemos algúnos datos de &lt;b&gt;dos razas de perros.&lt;/b&gt;&lt;/p&gt;
+
+  &lt;table class="ancho"&gt;
+    &lt;thead style="background-color: lightgray;"&gt; &lt;!-- CSS inline, directo --&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Raza&lt;/th&gt;
+      &lt;th&gt;Esp. Vida&lt;/th&gt;
+      &lt;th&gt;Tamaño&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;/thead&gt;
+    
+    &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td class="izq"&gt;Terrier&lt;/td&gt;
+      &lt;td class="der"&gt;15&lt;/td&gt;
+      &lt;td class="der"&gt;Muy pequeño&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class="izq"&gt;Akita&lt;/td&gt;
+      &lt;td class="der"&gt;10&lt;/td&gt;
+      &lt;td class="der"&gt;Grande&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;/tbody&gt;
+    &lt;/table&gt;
+  
+  &lt;p&gt;Sus imágenes son las siguientes:&lt;/p&gt;
+
+  &lt;p&gt;
+    &lt;table id="tabla-imagen-perros"&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;
+          &lt;td&gt;
+            &lt;img src='../images/akita.jpeg' alt="Perro akita"&gt; &lt;br&gt;
+            Akita
+          &lt;/td&gt;
+          &lt;td&gt;
+            &lt;img src='../images/terrier.jpeg' alt="Perro terrier"&gt; &lt;br&gt;
+            Terrier
+          &lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+        &lt;tfoot class = "fuente"&gt;
+          &lt;tr&gt;
+            &lt;td colspan="2"&gt;
+              Fuente: &lt;a href="https://www.royalcanin.com/es/dogs/breeds/breed-library"&gt;Biblioteca de razas de Royal Canin&lt;/a&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tfoot&gt;
+    &lt;/table&gt;
+  &lt;/p&gt;
+
+ &lt;/html&gt;
+```
+
+[HTML Elements](https://www.w3schools.com/html/html_elements.asp)
+]
+
+
+---
+
+# El desafio: encontrar lo que nos interesa.
+
+Podemos utilizar varias formas de llegar a ellos:
+
+* Elementos de html por su [`tag`](https://www.w3schools.com/tags/ref_byfunc.asp)
+
+* Mediante selectores de [`css`](https://www.w3schools.com/css/css_selectors.asp)
+
+  * `id` que identifica de manera única algún elemento web 
+  * `clases` de estilos
+  * Combinación de `tags` y `clases`
+
+
+---
+
+## Librería: rvest
+
+[Referencia](https://rvest.tidyverse.org/reference/index.html) de funciones en [rvest](https://rvest.tidyverse.org/reference/index.html) a tener en cuenta
+
+- `xlm2::read_html()`: función exportada por rvest para leer páginas web.
+
+- `html_element()` `html_elements()`: extrae elementos
+
+- `html_attr()` `html_attrs()`: extraemos atributos
+
+- `html_children()`: extrae elementos bajo cierto nodo
+
+- `html_name()`: extrae el nombre de elementos
+
+- `html_table()`: extrae y transforma a una data frame una tabla html
+
+- `html_text()` `html_text2()`: extrae texto o contenido
+
+
+---
+
+## html con tablas
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="./scraping_con_css.css">
+
+    <title>Datos de perros</title>
+</head>
+<body>
+  <h1 id='first'>Datos de perros</h1>
+  <p>Comparemos algúnos datos de <b>dos razas de perros.</b></p>
+
+  <table class="ancho">
+    <thead style="background-color: lightgray;"> <!-- CSS inline, directo -->
+    <tr>
+      <th>Raza</th>
+      <th>Esp. Vida</th>
+      <th>Tamaño</th>
+    </tr>
+    </thead>
+    
+    <tbody>
+    <tr>
+      <td class="izq">Terrier</td>
+      <td class="der">15</td>
+      <td class="der">Muy pequeño</td>
+    </tr>
+    <tr>
+      <td class="izq">Akita</td>
+      <td class="der">10</td>
+      <td class="der">Grande</td>
+    </tr>
+    </tbody>
+    </table>
+  
+  <p>Sus imágenes son las siguientes:</p>
+
+  <p>
+    <table id="tabla-imagen-perros">
+      <tbody>
+        <tr>
+          <td>
+            <img src='../images/akita.jpeg' alt="Perro akita"> <br>
+            Akita
+          </td>
+          <td>
+            <img src='../images/terrier.jpeg' alt="Perro terrier"> <br>
+            Terrier
+          </td>
+        </tr>
+      </tbody>
+        <tfoot class = "fuente">
+          <tr>
+            <td colspan="2">
+              Fuente: <a href="https://www.royalcanin.com/es/dogs/breeds/breed-library">Biblioteca de razas de Royal Canin</a>
+            </td>
+          </tr>
+        </tfoot>
+    </table>
+  </p>
+
+ </html>
+
+
+---
+
+## Scraping: lectura en R de html con datos
+
+Luego leemos la página en R usando `rvest`.
+
+
+
+
+```r
+(html &lt;- read_html(x = url))
+```
+
+```
+## {html_document}
+## &lt;html&gt;
+## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8 ...
+## [2] &lt;body&gt;\n  &lt;h1 id="first"&gt;Datos de perros&lt;/h1&gt;\n  &lt;p&gt;Comparemos algúnos da ...
+```
+
+
+---
+
+## Scraping: tablas
+
+Podemos capturar las tablas de `tag` `&lt;table&gt;` de la página:
+
+
+```r
+html |&gt; html_elements('table') |&gt; html_table()
+```
+
+```
+## [[1]]
+## # A tibble: 2 × 3
+##   Raza    `Esp. Vida` Tamaño     
+##   &lt;chr&gt;         &lt;int&gt; &lt;chr&gt;      
+## 1 Terrier          15 Muy pequeño
+## 2 Akita            10 Grande     
+## 
+## [[2]]
+## # A tibble: 2 × 2
+##   X1                                         X2                                 
+##   &lt;chr&gt;                                      &lt;chr&gt;                              
+## 1 Akita                                      Terrier                            
+## 2 Fuente: Biblioteca de razas de Royal Canin Fuente: Biblioteca de razas de Roy…
+```
+
+¿Como podemos ser más **selectivos**?
+
+
+---
+
+## Selectores de CSS
+
+.
+[CSS Selector Reference](https://www.w3schools.com/CSSref/css_selectors.asp)
+
+* `#id`: elemento de id = `id`
+
+* `tag`: elementos de tipo `&lt;tag&gt;`
+
+* `.class`: elementos de clase `class`
+
+* `tag.class`: elementos de tipo `tag` de clase `class`
+
+Se pueden probar varios selectores [acá](https://www.w3schools.com/CSSref/trysel.asp) y probar las habilidades en [CSS Diner](https://flukeout.github.io)
+
+
+---
+
+## Selectores de CSS: nombres
+
+Analicemos la [página web](./class_3_files/scraping_con_css.html) directamente.
+
+Para encontrar los elementos de interés en la página web, usamos dos herramientas:
+
+- [SelectorGadget](https://rvest.tidyverse.org/articles/selectorgadget.html): Un programa en javascript que puede quedar como bookmark
+
+- [Web development tools](https://en.wikipedia.org/wiki/Web_development_tools) del navegador de preferencia.
+
+
+---
+
+## Identificación de elementos: SelectorGadget
+
+- [SelectorGadget](https://rvest.tidyverse.org/articles/selectorgadget.html)
+
+&lt;style type="text/css"&gt;
+.img-height-medio p img{
+  height: 500px;
+} 
+&lt;/style&gt;
+
+.img-height-medio[
+![SelectorGadget para encontrar clase de tabla con imagenes](./images/tools_selectorgadget.jpeg)
+]
+
+
+---
+
+## Identificación de elementos: Web development tools
+
+- [Web development tools](https://en.wikipedia.org/wiki/Web_development_tools) del navegador de preferencia.
+
+.img-height-medio[
+![Web Inspector en Safari](./images/tools_web_inspector.jpeg)
+]
+
+
+---
+
+## Scraping: tabla según id
+
+La segunda tabla tiene como id: `#tabla-imagen-perros`
+
+
+```r
+(df_img_perros &lt;- html |&gt; html_element('#tabla-imagen-perros') |&gt; 
+   html_table())
+```
+
+```
+## # A tibble: 2 × 2
+##   X1                                         X2                                 
+##   &lt;chr&gt;                                      &lt;chr&gt;                              
+## 1 Akita                                      Terrier                            
+## 2 Fuente: Biblioteca de razas de Royal Canin Fuente: Biblioteca de razas de Roy…
+```
+
+¿Cómo capturamos los links a las imágenes?
+
+
+```r
+(src_img_perros &lt;- html |&gt; html_elements('#tabla-imagen-perros') |&gt; 
+   html_elements('img') |&gt; 
+   html_attr('src'))
+```
+
+```
+## [1] "../images/akita.jpeg"   "../images/terrier.jpeg"
+```
+
+
+---
+
+## Scraping: tabla según id 2
+
+Se debe saber como manejar distintas secciones de los datos.
+
+
+```r
+# Uso rbind porque tiene menos salvaguardas que `bind_rows`.
+(df_img_perros &lt;- base::rbind(df_img_perros,
+                              src_img_perros))
+```
+
+```
+## # A tibble: 3 × 2
+##   X1                                         X2                                 
+##   &lt;chr&gt;                                      &lt;chr&gt;                              
+## 1 Akita                                      Terrier                            
+## 2 Fuente: Biblioteca de razas de Royal Canin Fuente: Biblioteca de razas de Roy…
+## 3 ../images/akita.jpeg                       ../images/terrier.jpeg
+```
+
+Queda pivotear la base.
+
+
+```r
+df_img_perros |&gt; 
+  t() |&gt; as.data.frame() |&gt;
+  setNames(nm = c('raza', 'fuente', 'img_src'))
+```
+
+```
+##       raza                                     fuente                img_src
+## X1   Akita Fuente: Biblioteca de razas de Royal Canin   ../images/akita.jpeg
+## X2 Terrier Fuente: Biblioteca de razas de Royal Canin ../images/terrier.jpeg
+```
+
+
+---
+
+## Scraping: texto
+
+- Seleccionar elemento identificado con `id = first`
+
+
+```r
+html |&gt; html_element('#first') |&gt; html_text()
+```
+
+```
+## [1] "Datos de perros"
+```
+
+- Selección de todos los `&lt;p&gt;`
+
+
+```r
+html |&gt; html_elements('p') |&gt; html_text()
+```
+
+```
+## [1] "Comparemos algúnos datos de dos razas de perros."
+## [2] "Sus imágenes son las siguientes:"                
+## [3] "\n    "
+```
+
+- Selección de `&lt;b&gt;` dentro de `&lt;p&gt;`
+
+
+```r
+html |&gt; html_elements('p b') |&gt; html_text()
+```
+
+```
+## [1] "dos razas de perros."
+```
+
+
+---
+
+## Scraping: texto 2
+
+Selección de todos los elementos `&lt;a&gt;` con atributos `href`
+
+
+```r
+html |&gt; html_elements('a[href]')
+```
+
+```
+## {xml_nodeset (1)}
+## [1] &lt;a href="https://www.royalcanin.com/es/dogs/breeds/breed-library"&gt;Bibliot ...
+```
+
+Selección de todos los elementos con atributo `alt` que contenta la palabra *akita*
+
+
+```r
+html |&gt; html_elements('[alt*=akita]')
+```
+
+```
+## {xml_nodeset (1)}
+## [1] &lt;img src="../images/akita.jpeg" alt="Perro akita"&gt;
+```
+
+
+---
+
+## Scraping: Biblioteca
+
+Siguiente ejemplo con el sitio [Books to Scrape](http://books.toscrape.com/index.html)
+
+* ¿Cuántos libros hay en cada categoría?
+
+
+```r
+url &lt;- 'http://books.toscrape.com/'
+html &lt;- read_html(paste0(url, 'index.html'))
+```
+
+Selección en columna de categorías de clase `.side_categories` los links `&lt;a&gt;`:
+
+
+```r
+l_cat &lt;- html |&gt; html_elements('.side_categories a')
+
+head(l_cat, 2)
+```
+
+```
+## {xml_nodeset (2)}
+## [1] &lt;a href="catalogue/category/books_1/index.html"&gt;\n                        ...
+## [2] &lt;a href="catalogue/category/books/travel_2/index.html"&gt;\n                 ...
+```
+
+
+---
+
+## Scraping: Biblioteca 2
+
+Construyo data.table con los nombres de categorías y links relacionados.
+
+
+```r
+df_cat &lt;- tibble(categoria = l_cat |&gt; html_text(),
+                 link      = l_cat |&gt; html_attr('href')) |&gt; 
+  mutate(categoria = stringr::str_squish(categoria))
+
+head(df_cat, 2)
+```
+
+```
+## # A tibble: 2 × 2
+##   categoria link                                        
+##   &lt;chr&gt;     &lt;chr&gt;                                       
+## 1 Books     catalogue/category/books_1/index.html       
+## 2 Travel    catalogue/category/books/travel_2/index.html
+```
+
+
+---
+
+## Scraping: Biblioteca 3
+
+Leamos todas las páginas referidas en los links usando `rowwise()`.
+
+
+```r
+df_cat_hojas &lt;- df_cat |&gt; 
+  rowwise() |&gt; 
+  mutate(pagina = list(read_html(paste0(url, link))))
+
+head(df_cat_hojas, 3)
+```
+
+```
+## # A tibble: 3 × 3
+## # Rowwise: 
+##   categoria link                                          pagina    
+##   &lt;chr&gt;     &lt;chr&gt;                                         &lt;list&gt;    
+## 1 Books     catalogue/category/books_1/index.html         &lt;xml_dcmn&gt;
+## 2 Travel    catalogue/category/books/travel_2/index.html  &lt;xml_dcmn&gt;
+## 3 Mystery   catalogue/category/books/mystery_3/index.html &lt;xml_dcmn&gt;
+```
+
+¿Cómo detecto el número de libros de cada categoría?
+
+
+```r
+html |&gt; html_elements('.form-horizontal strong:first-of-type') |&gt; html_text()
+```
+
+```
+## [1] "1000"
+```
+
+
+---
+
+## Scraping: Biblioteca 3
+
+Extraigo el número de libros de cada categoría.
+
+
+```r
+df_cat_hojas &lt;- df_cat_hojas |&gt; 
+  mutate(n_libros = html_elements(pagina, '.form-horizontal strong:first-of-type') |&gt; html_text()) |&gt; 
+  ungroup() |&gt; # evito que data.frame siga agrupada por filas.
+  mutate(n_libros = as.integer(n_libros))
+
+df_cat_hojas |&gt; head(3)
+```
+
+```
+## # A tibble: 3 × 4
+##   categoria link                                          pagina     n_libros
+##   &lt;chr&gt;     &lt;chr&gt;                                         &lt;list&gt;        &lt;int&gt;
+## 1 Books     catalogue/category/books_1/index.html         &lt;xml_dcmn&gt;     1000
+## 2 Travel    catalogue/category/books/travel_2/index.html  &lt;xml_dcmn&gt;       11
+## 3 Mystery   catalogue/category/books/mystery_3/index.html &lt;xml_dcmn&gt;       32
+```
+
+
+---
+
+## Scraping: Biblioteca 4
+
+.font70[
+
+```r
+df_cat_hojas |&gt; 
+  filter(n_libros &lt; 1000) |&gt; 
+  ggplot(aes(x = fct_reorder(categoria, -n_libros), y = n_libros)) + 
+  geom_col() + 
+  scale_x_discrete(NULL, guide = guide_axis(angle = 90)) +
+  labs(title = 'Número de libros por categoría') + theme_minimal()
+```
+
+![](class_3_files/figure-html/unnamed-chunk-22-1.png)&lt;!-- --&gt;
+]
+
+
+---
+
+## En la próximo taller… 
+
+- Ejemplos de captura de sitios web
+
+- Operaciones en data.frames por filas con [dplyr::rowwise()](https://dplyr.tidyverse.org/articles/rowwise.html)
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+
+&lt;https://caayala.github.io/web_scraping_soc40XX/&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
