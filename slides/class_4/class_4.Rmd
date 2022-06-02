@@ -1,0 +1,128 @@
+---
+title: "Clase 4: Captura de páginas web"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
+author: "<br>Cristián Ayala<br> Director DESUC"
+date: "[github.com/caayala](https://github.com/caayala)"
+output:
+  xaringan::moon_reader:
+    lib_dir: "libs"
+    css: ["default", "default-fonts", "../gentle-r.css"]
+    df_print: default
+    nature:
+      ratio: 16:9
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+      slideNumberFormat: "%current%"
+editor_options: 
+  chunk_output_type: console
+---
+layout: false
+
+
+## Hoy veremos
+
+- Ejemplos de captura de sitios web
+
+- Operaciones en data.frames por filas con [dplyr::rowwise()](https://dplyr.tidyverse.org/articles/rowwise.html)
+
+
+---
+
+## APIs
+
+Una API ---*application programming interface*--- permite interactuar con una página web. 
+En su forma más sencilla, entrega variables mediante la url.
+
+Como ejemplo genérico:
+
+* `http://sitioweb.cl/key?param_1=val_1&param_2=val_2`
+
+Esta URL se compone de:
+
+- `http://sitioweb.cl` URL base
+- `key` alguna tocken de autentificación
+- `?param_1=val_1&param_2=val_2`, una lista de parámetros que llegarán al servidor
+
+Ejemplo: <https://www.google.com/search?q=sociologia+uc>
+
+
+---
+
+## Motivación
+
+- Revisar y capturar sitios web.
+
+- Lectura y seguimiento de links para lograr datos estructurados.
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 1: Biblioteca
+
+[Books to Scrape](http://books.toscrape.com/index.html)
+
+- Iteración entre páginas web
+- Uso de [list columns](https://dcl-prog.stanford.edu/list-columns.html)
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 2: Hockey Teams
+
+[Hockey Teams](https://www.scrapethissite.com/pages/forms/)
+
+- Forms
+- Searching
+- Pagination
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 3: Oscar Winning Films: 
+
+[Hockey Teams](https://www.scrapethissite.com/pages/forms/)
+
+- [AJAX](https://en.wikipedia.org/wiki/Ajax_(programming)) ---Asynchronous JavaScript and XML
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 4: SPD Centro de documentación
+
+[CEAD](http://cead.spd.gov.cl/centro-de-documentacion/)
+
+- Bajar archivos
+
+
+---
+
+## Taller: sitios web
+
+Vamos al [código](class_4_taller.R).
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+<https://github.com/caayala/web_scraping_soc40XX>
+
+<https://caayala.github.io/web_scraping_soc40XX/>
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+<br>
+Cristián Ayala  
+<https://blog.desuc.cl/>  
+<http://github.com/caayala>
