@@ -28,7 +28,7 @@ En total son **295**[^1] según se muestra en esta búsqueda:
 
 <https://www.imdb.com/search/title/?title_type=feature&countries=cl&locations=chile>
 
-[^1]: Número de películas al omento de haber consulado el sitio para este control.
+[^1]: Número de películas al momento de diseñar este control.
 
 ## Tareas:
 
