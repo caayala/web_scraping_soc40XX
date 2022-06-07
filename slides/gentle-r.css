@@ -120,6 +120,11 @@ strong {
   width: 100%;
 }
 
+.img-center img {
+  height: 450;
+  vertical-align: middle;
+}
+
 .plot-callout {
   height: 300px;
   width: 600px;
