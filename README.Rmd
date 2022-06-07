@@ -28,6 +28,8 @@ El programa de este curso se encuentra [`acá`](files/01-programa.pdf).
 
 Al final de este curso los alumnos debiesen tener la capacidad de acceder a nuevas fuentes de datos para su análisis. Esta habilidad es de gran utilidad práctica porque más y más información es generada, almacenada y ---de alguna manera--- disponible en Internet.
 
+El sitio web del curso es <https://caayala.github.io/web_scraping_soc40XX/>.
+
 ---
 
 #### Calendario
