@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Clase 5: Web Scraping avanzado</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Clase 5: Web Scraping avanzado
+]
+.subtitle[
+## Web Scraping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+
+## Esquema general de un web scraping.
+
+Estamos en condiciones de entender este esquema:
+
+&lt;img src="https://github.com/yusuzech/r-web-scraping-cheat-sheet/raw/master/resources/functions_and_classes.png" title="Relación entre pasos para capturar sitios webs y funciones en R" alt="Relación entre pasos para capturar sitios webs y funciones en R" width="70%" style="display: block; margin: auto;" /&gt;
+
+.footnote[
+Fuente: [Web Scraping Reference, Cheat Sheet for Web Scraping using R](https://github.com/yusuzech/r-web-scraping-cheat-sheet)
+]
+
+---
+
+## HTTP Conversación general
+
+Veamos en detalle el protocolo HTTP al momento de comunicarse con un servidor HTTP. 
+
+![Comunicación con servidor HTTP](./class_5_files/comunicacion_via_html.png)
+
+* Por HTTP además de texto se transmiten muchos otros documentos
+
+* HTTP no tiene mantiene el estado, es *stateless*. Sin más, cada comunicación es como si fuese nueva.
+
+---
+
+## URL
+
+*Uniform Resource Locators* o URL tienen la siguiente forma:
+
+`scheme://hostname:port/path?querystring#fragment`
+
+- *scheme*: protocolo de conexión al servidor (http, https, ftp, mailto,…).
+
+- *hostname*: nombre del servidor al se quiere acceder. Servidor de DNS lo transforma a dirección IP.
+
+- *port*: puerta a la que se quiere entrar (80 es el puerto por defecto de TCP) .
+
+- *path*: ubicación del recurso solicitado en el *hostname*.
+
+- *query string*: información anexa enviada al servidor en pares `var1=val1&amp;var2=val2…`.
+
+- *fragment*: ubicación dentro de un archivo específico.
+
+&lt;br&gt;
+
+[`http://www.google.com:80/search?q=r+cheat+sheet+filetype%3Apdf`](http://www.google.com:80/search?q=r+cheat+sheet+filetype%3Apdf)
+
+
+---
+
+## URL Encode
+
+Las URLs usan solo los 128 caracteres de [ASCII](https://es.wikipedia.org/wiki/ASCII). Todas las letras no incluidas deben ser sustituidos por una representación en ellos.
+
+Funciones para trabajar con [Código URL](https://es.wikipedia.org/wiki/Código_porciento):
+
+
+```r
+text &lt;- "¡Hola! Soy Cristián y tengo 43 años"
+
+(text_url &lt;- URLencode(text))
+```
+
+```
+## [1] "%C2%A1Hola!%20Soy%20Cristi%C3%A1n%20y%20tengo%2043%20a%C3%B1os"
+```
+
+
+```r
+(URLdecode(text_url))
+```
+
+```
+## [1] "¡Hola! Soy Cristián y tengo 43 años"
+```
+
+Nota: el `+` del ejemplo anterior solo sirve porque es un espacio en la parte de búsqueda, *query*, de la dirección. En otros casos la codificación de " " es `%20`.
+
+
+---
+
+## HTTP Requerimiento
+
+La comunicación se efectúa intercambiando mensajes que contienen **tres partes**. 
+
+Mensaje con **request**:
+
+.pull-left[
+- *Primera línea*: 
+
+    Método, path y versión
+
+- *Cabeza*: 
+    
+    Nombre1: Valor1&lt;br&gt;
+    Nombre2: Valor2
+
+- *Cuerpo*: datos a comunicar
+]
+
+.pull-right[
+- *Primera línea*: 
+    
+    `POST /edicion.html HTML/1.1`
+
+- *Cabeza* : 
+  
+    `Host: es.wikipedia.org`
+    &lt;br&gt;&lt;br&gt;
+
+- *Cuerpo*: 
+
+    `Quiero agregar esta línea al texto.`
+]
+
+
+---
+
+## HTTP Respuesta
+
+La comunicación se efectúa intercambiando mensajes que contienen **tres partes**. 
+
+Mensaje con **response**:
+
+.pull-left[
+- *Primera línea*: 
+
+    versión, estado y frase
+
+- *Cabeza*: 
+    
+    Nombre1: Valor1&lt;br&gt;
+    Nombre2: Valor2
+
+- *Cuerpo*: datos a comunicar
+]
+
+.pull-right[
+- *Primera línea*: 
+    
+    `HTTP/1.1 200 OK`
+
+- *Cabeza* : 
+  
+    `Content-type: text/plain`
+    &lt;br&gt;&lt;br&gt;
+
+- *Cuerpo*: 
+
+    `El mensaje fue agregado con éxito.`
+]
+
+
+---
+
+## HTTP Métodos de requerimientos
+
+Los [métodos de requerimientos](https://www.w3schools.com/tags/ref_httpmethods.asp) más comunes son los siguientes:
+
+| Método | Descripción |
+| :--- | : ------ | 
+| GET  | Pide recurso del servidor |
+| POST | Pide recurso del servidor enviando en el cuerpo datos o archivos | 
+| HEAD | Como GET, pero servidor solo devuelve start line y header|
+| PUT | Guarda el cuerpo en el servidor |
+| DELETE | Borra recurso del servidor |
+| TRACE | Sigue la ruta del mensaje hasta llegar al servidor |
+| OPTIONS | Devuelve la lista de métodos HTTP compatibles |
+| CONNECT | Establece una conexión de red |
+
+Los más importantes son `GET` y `POST` porque piden cosas al servidor.
+
+
+---
+
+## HTTP Códigos de respuesta 1
+
+.pull-left[
+
+Cuando se pide algo a un servidor, este entregará una respuesta, el *status code* [Códigos de respuesta](https://www.w3schools.com/tags/ref_httpmessages.asp). Van desde 100 a 599.
+
+Hay 5 bloques de códigos: 
+
+| Código | Mensaje |
+| :--- | :----------- |
+| 1xx  | Respuestas informativas |
+| 2xx  | Peticiones correctas |
+| 3xx  | Redirecciones |
+| 4xx  | Errores del cliente |
+| 5xx  | Errores de servidor |
+]
+
+.pull-right.font70[
+Ejemplos relevantes:
+
+- **`200` OK** Petición correctas &lt;br&gt;
+
+- **`400` Bad Request** Servidor no procesará la solicitud
+
+- **`404` Not found** Recurso no encontrado
+]
+
+
+---
+
+## HTTP Códigos de respuesta 2
+
+- Sitio no existe
+
+
+```r
+httr::GET(url = 'https://blog.desuc.cl/test.html') |&gt; httr::http_status()
+```
+
+```
+## $category
+## [1] "Client error"
+## 
+## $reason
+## [1] "Not Found"
+## 
+## $message
+## [1] "Client error: (404) Not Found"
+```
+
+- Respuesta OK
+
+
+```r
+rvest::session(url = 'https://blog.desuc.cl/')
+```
+
+```
+## &lt;session&gt; https://blog.desuc.cl/
+##   Status: 200
+##   Type:   text/html; charset=utf-8
+##   Size:   89973
+```
+
+
+---
+
+## HTTP Cabeceras 1
+
+.pull-left[
+La cabecera ---headers--- definen las acciones a tomar al momento de la recepción de un requerimiento o respuesta.
+
+- *Accept* (request): tipo de contenido que el cliente puede recibir.
+- *Accept-Encoding* (request): métodos de compresión o codificación que puede aceptar el cliente.
+- *Authorization* (request): método sencillo para enviar credencial del cliente al servidor.
+- *Content-Type* (response; body): tipo de contenido en el cuerpo de la respuesta.
+- *Cookie* (request): información hacia el servidor. Envío información previamente recibida en *Set-Cookie* (response).
+- *User-Agent* (request): descripción del [tipo de cliente](http://httpbin.org/user-agent) que hace el requerimiento.
+]
+
+.pull-right.font70[
+Un ejemplo de cabecera de requerimiento (GET):
+
+
+```r
+s_blog &lt;- GET(url = 'https://blog.desuc.cl')
+
+s_blog$request
+```
+
+```
+## &lt;request&gt;
+## GET https://blog.desuc.cl
+## Output: write_memory
+## Options:
+## * useragent: libcurl/7.79.1 r-curl/4.3.2 httr/1.4.3
+## * httpget: TRUE
+## Headers:
+## * Accept: application/json, text/xml, application/xml, */*
+```
+]
+
+
+---
+
+## HTTP Cabeceras 2
+
+El intercambio de información se puede ver también el inspector del navegador de preferencia:
+
+&lt;img src="class_5_files/request_blog.png" title="Ejemplo de headers" alt="Ejemplo de headers" width="70%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## HTTP Cabeceras de respuesta
+
+Ejemplo de cabecera de respuesta luego de capturar &lt;https://blog.desuc.cl&gt;:
+
+
+```r
+s_blog |&gt; headers() |&gt; enframe() |&gt; mutate(value = as.character(value))
+```
+
+```
+## # A tibble: 21 × 2
+##    name                        value                           
+##    &lt;chr&gt;                       &lt;chr&gt;                           
+##  1 server                      "GitHub.com"                    
+##  2 content-type                "text/html; charset=utf-8"      
+##  3 last-modified               "Thu, 12 May 2022 13:29:33 GMT" 
+##  4 access-control-allow-origin "*"                             
+##  5 etag                        "W/\"627d0bbd-15f75\""          
+##  6 expires                     "Tue, 07 Jun 2022 16:45:24 GMT" 
+##  7 cache-control               "max-age=600"                   
+##  8 content-encoding            "gzip"                          
+##  9 x-proxy-cache               "MISS"                          
+## 10 x-github-request-id         "8A20:6CFA:33702:3B959:629F7E4C"
+## # … with 11 more rows
+```
+
+
+---
+
+## HTTP Modificación parámetros 1
+
+Agregar parámetros a la cabecera del requerimiento: Variables en URL.
+
+.font70[
+
+```r
+resp &lt;- GET('http://httpbin.org/get',
+            query = list(var1 = "valor1", 
+                         var2 = "valor2"), #URL values
+            authenticate('usuario', 'clavesegura'),
+            user_agent(agent = 'hola mundo'),
+            set_cookies(a = 1),
+            accept_json(),
+            add_headers(class = "Web Scraping UC", year = 2022))
+```
+
+1. Valores en la `URL`.
+
+1. Autentificación con *nombre* y *clave*.
+
+1. Cambio en el User-agent. Se le dice *spoofing*.
+
+1. Ajuste de cookies.
+
+1. Declaro aceptar archivos json.
+
+1. Agregar variables personalizadas.
+]
+
+
+---
+
+## HTTP Modificación parámetros 2
+
+Respuesta obtenida luego de agregar manualmente parámetros al requerimiento: 
+
+
+```r
+resp
+```
+
+```
+## Response [http://httpbin.org/get?var1=valor1&amp;var2=valor2]
+##   Date: 2022-06-07 20:07
+##   Status: 200
+##   Content-Type: application/json
+##   Size: 515 B
+## {
+##   "args": {
+##     "var1": "valor1", 
+##     "var2": "valor2"
+##   }, 
+##   "headers": {
+##     "Accept": "application/json", 
+##     "Accept-Encoding": "deflate, gzip", 
+##     "Authorization": "Basic dXN1YXJpbzpjbGF2ZXNlZ3VyYQ==", 
+##     "Class": "Web Scraping UC", 
+## ...
+```
+
+
+---
+
+## HTTP Cookies en cabeceras
+
+Con las cookies de un sitio web podemos mantener información de la sesión.
+
+.font70[
+
+```r
+(git_cookies &lt;- GET('http://github.com') |&gt; cookies())
+```
+
+```
+##                  domain  flag path secure          expiration      name
+## 1  #HttpOnly_github.com FALSE    /   TRUE                 Inf  _gh_sess
+## 2           .github.com  TRUE    /   TRUE 2023-06-07 16:07:27     _octo
+## 3 #HttpOnly_.github.com  TRUE    /   TRUE 2023-06-07 16:07:27 logged_in
+##                                                                                                                                                                                                                                                                                                                                                            value
+## 1 3dMmMpLK0LNlHxe8C5mUQKJC7uyo4%2FH4kST4UaAIan8KrxynwKqp5tWxnE1TsTIcvoklugMmGdU2dQnBJ57OmN7e3CHu4hlKbMomR%2BBsxgJ8PefGyGdP%2FbuZ04o7mWmYps5t5dg4nlruo4KsY56L9SBb2j8VzMhdx%2Bn%2Fvl2BQesOdbHqZJJtk%2FE3GcFhq38SljhADlpMXvA0WiiOK2L82nCu%2FXckF4G4olhmHsZcS3wddYqHUhKLpnba82VYURwxBIPenJ7PfLHApRO3wjQx%2Fg%3D%3D--0F4S8RukSS8%2BEpLy--rgvXQoaHNPW3b57VR1zm5A%3D%3D
+## 2                                                                                                                                                                                                                                                                                                                                     GH1.1.564095510.1654632447
+## 3                                                                                                                                                                                                                                                                                                                                                             no
+```
+]
+
+Listado de pares nombre = valor de cookies para nuevas conexiones:
+
+.font70[
+
+```r
+git_cookies |&gt; pull(value, name) |&gt; str_trunc(width = 70)
+```
+
+```
+##                                                                 _gh_sess 
+## "3dMmMpLK0LNlHxe8C5mUQKJC7uyo4%2FH4kST4UaAIan8KrxynwKqp5tWxnE1TsTIcv..." 
+##                                                                    _octo 
+##                                             "GH1.1.564095510.1654632447" 
+##                                                                logged_in 
+##                                                                     "no"
+```
+]
+
+---
+
+## HTTP User-agent
+
+- Para recibir el User-Agent se puede usar &lt;http://httpbin.org/user-agent&gt;. Su descripción [aquí](http://useragentstring.com/index.php).
+
+- `httr` se muestra en el User-Agent. El servidor puede saber que está siendo requerido para un web scraping.
+
+
+```r
+GET('http://httpbin.org/user-agent')
+```
+
+```
+## Response [http://httpbin.org/user-agent]
+##   Date: 2022-06-07 20:07
+##   Status: 200
+##   Content-Type: application/json
+##   Size: 61 B
+## {
+##   "user-agent": "libcurl/7.79.1 r-curl/4.3.2 httr/1.4.3"
+## }
+```
+
+En este momento, el User-Agent de mi navegador (Safari) es:
+
+```
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15
+```
+
+
+---
+
+## HTTP Modificación de cookies 1
+
+.pull-left.font70[
+Las cookies las envía el servidor en su respuesta. Podemos crear cookies de prueba en esta sesión.
+
+
+```r
+GET('http://httpbin.org/cookies/set?c1=tritón')
+```
+
+```
+## Response [http://httpbin.org/cookies]
+##   Date: 2022-06-07 20:07
+##   Status: 200
+##   Content-Type: application/json
+##   Size: 47 B
+## {
+##   "cookies": {
+##     "c1": "trit\u00f3n"
+##   }
+## }
+```
+]
+
+.pull-right.font70[
+En siguientes visitas a ese mismo sitio web, esas cookies se mantienen
+
+
+```r
+GET('http://httpbin.org/cookies') |&gt; 
+  cookies() |&gt; t()
+```
+
+```
+##            [,1]                 
+## domain     "httpbin.org"        
+## flag       "FALSE"              
+## path       "/"                  
+## secure     "FALSE"              
+## expiration "Inf"                
+## name       "c1"                 
+## value      "\"trit\\303\\263n\""
+```
+]
+
+
+---
+
+## HTTP Modificación de cookies 2
+
+.pull-left.font70[
+
+Puedo agregar información de cookies, manualmente. No quedará guardada en el servidor.
+
+
+```r
+GET('http://httpbin.org/cookies',
+    set_cookies('x1' = 'vino'))
+```
+
+```
+## Response [http://httpbin.org/cookies]
+##   Date: 2022-06-07 20:07
+##   Status: 200
+##   Content-Type: application/json
+##   Size: 66 B
+## {
+##   "cookies": {
+##     "c1": "trit\u00f3n", 
+##     "x1": "vino"
+##   }
+## }
+```
+]
+
+.pull-right.font70[
+
+```r
+GET('http://httpbin.org/cookies') |&gt; 
+  cookies() |&gt; t()
+```
+
+```
+##            [,1]                 
+## domain     "httpbin.org"        
+## flag       "FALSE"              
+## path       "/"                  
+## secure     "FALSE"              
+## expiration "Inf"                
+## name       "c1"                 
+## value      "\"trit\\303\\263n\""
+```
+]
+
+
+---
+
+## Acceso a información: Spoofing Headers 1
+
+Ejemplo de [Spoofing Headers](https://www.scrapethissite.com/pages/advanced/?gotcha=headers). 
+
+.font70[
+
+```r
+f_container_row &lt;- function(.get){
+  .get |&gt; read_html() |&gt; html_element('.container .row') |&gt; html_text() |&gt; str_squish()
+}
+
+GET('https://www.scrapethissite.com/pages/advanced/?gotcha=headers') |&gt; f_container_row()
+```
+
+```
+## [1] "Errors Detected in HTTP Request: Accept value is missing 'text/html' User-Agent value doesn't look like a standard mozilla/chrome/safari value. Incorrect headers sent, bot detected! :("
+```
+]
+
+
+---
+
+## Acceso a información: Spoofing Headers 2
+
+1. Resolvemos problema con `accept()`.
+
+
+```r
+GET('https://www.scrapethissite.com/pages/advanced/?gotcha=headers',
+    accept('text/html')) |&gt; f_container_row()
+```
+
+```
+## [1] "Errors Detected in HTTP Request: User-Agent value doesn't look like a standard mozilla/chrome/safari value. Incorrect headers sent, bot detected! :("
+```
+
+2. Resolvemos problema con `user-agent()`.
+
+
+```r
+GET('https://www.scrapethissite.com/pages/advanced/?gotcha=headers',
+    user_agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15'),
+    accept('text/html')) |&gt; f_container_row()
+```
+
+```
+## [1] "Headers properly spoofed, request appears to be coming from a browser :)"
+```
+]
+
+
+---
+
+## Acceso a información: Autentificación 1
+
+Ejemplo de [Logins &amp; Session Data](https://www.scrapethissite.com/pages/advanced/?gotcha=login). 
+
+
+
+```r
+GET('https://www.scrapethissite.com/pages/advanced/?gotcha=login') |&gt; f_container_row()
+```
+
+```
+## [1] "Errors Detected in HTTP Request: Needs login Please \"Login\" Note: This is just a simulated login form so any username and password combination will work."
+```
+
+Llenado de formulario usando `httr` y el método [POST]().
+
+
+```r
+httr::POST('https://www.scrapethissite.com/pages/advanced/?gotcha=login',
+     body = list(user = 'test', pass = 'test')) |&gt; f_container_row()
+```
+
+```
+## [1] "Successfully logged in! Nice job :)"
+```
+
+
+---
+
+## Acceso a información: Autentificación 2
+
+Llenado de formulario usando `rvest`
+
+
+```r
+s &lt;- session('https://www.scrapethissite.com/pages/advanced/?gotcha=login')
+f &lt;- html_form(s)[[1]]
+
+f_llena &lt;- f |&gt; html_form_set(user = 'test', pass = 'test')
+# Pequeño hack porque la forma no tiene el atributo "action".
+f_llena$action &lt;- 'https://www.scrapethissite.com/pages/advanced/?gotcha=login'
+
+f_llena |&gt; html_form_submit() |&gt; f_container_row()
+```
+
+```
+## [1] "Successfully logged in! Nice job :)"
+```
+
+.footnote[
+Referencia de hack: &lt;https://github.com/tidyverse/rvest/issues/319&gt;
+]
+
+
+---
+
+## En el próximo taller… 
+
+- Captura de sitios con login y modificación de encabezados.
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+
+&lt;https://caayala.github.io/web_scraping_soc40XX/&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
