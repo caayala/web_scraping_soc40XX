@@ -60,6 +60,9 @@ html_cumpleanos |>
 url_captura <- 'https://portal.uc.cl/c/portal/render_portlet?p_l_id=10230&p_p_id=DatosPersonales_WAR_LPT022_DatosPersonales&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=0&p_p_col_count=1&currentURL=%2Fweb%2Fhome-community%2Fdatos-personales%3Fgpi%3D10225'
 parse_url(url_captura)
 
+# EJERCICIO:
+# Crear el query a partir del link anterior:
+
 url_portal_render$query <- list(p_l_id = 10230,
                                 p_p_id = 'DatosPersonales_WAR_LPT022_DatosPersonales',
                                 p_p_lifecycle = 0,
@@ -83,6 +86,8 @@ html_personal |>
 # Ejemplo 2: Ciudades Amigables ----
 # 
 
+# EJERCICIO:
+# Capturar la información de esta página
 url_home <- 'https://www.ciudadesamigables.cl/comunas-amigables/'
 
 home_s <- session(url_home)
@@ -92,6 +97,9 @@ status_code(home_s)
 home_html <- home_s |> 
   read_html() 
 
+# EJERCICIO:
+# ¿Está la tabla de interés?
+
 # No encontramos lo que buscamos:
 home_html |> 
   html_elements('.overflow-auto')
@@ -100,12 +108,17 @@ home_html |>
 html_form(home_html)
 
 
+# EJERCICIO:
+# Buscar el *request* que entrega la información con los datos municipales.
 
 # El servidor entrega resultados desde:
 url_consulta <- 'https://www.ciudadesamigables.cl/api/comunas-filters/'
 
 home_input <- home_html |> 
   html_elements('input')
+
+# EJERCICIO:
+# Construir y capturar ese link. ¿Qué sucede?
 
 web_token <- setNames(home_input |> html_attr('value'),
                       paste0('X-', home_input |> html_attr('name')))
@@ -131,6 +144,9 @@ json_comunas$comunas |>
 pages <- 1:39
 
 # Función para capturar la información
+
+# EJERCICIO:
+# Construir función para capturar las sucesivas páginas con información.
 
 json_page <- function(.page){
   data <- session_jump_to(home_s,
@@ -235,13 +251,7 @@ if(!exists('df_users')){
                                                 bearer_token = Sys.getenv('TWITTER_BEARER'))
 }
 
-df_tweets_usuario <- left_join(df_tweets_all |> select(id, text, author_id),
+df_tweets_usuario <- left_join(df_tweets_all |> select(id, text, author_id, created_at),
                               df_users |> select(author_id = id, username, name),
                               by = 'author_id') |> 
   as_tibble()
-
-df_tweets_usuario |> 
-  count(username, name, sort = TRUE) |> 
-  head(10)
-
-ggplot()
