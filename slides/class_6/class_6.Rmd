@@ -1,0 +1,106 @@
+---
+title: "Clase 6: Captura de páginas web"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
+author: "<br>Cristián Ayala<br> Director DESUC"
+date: "[github.com/caayala](https://github.com/caayala)"
+output:
+  xaringan::moon_reader:
+    lib_dir: "libs"
+    css: ["default", "default-fonts", "../gentle-r.css"]
+    df_print: default
+    nature:
+      ratio: 16:9
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+      slideNumberFormat: "%current%"
+editor_options: 
+  chunk_output_type: console
+---
+layout: false
+
+
+## Hoy veremos
+
+- Ejemplos de captura de sitios web
+
+  - [portal.uc.cl](https://portal.uc.cl).
+
+  - Sitio web de [Ciudades Saludables](https://www.ciudadesamigables.cl).
+  
+  - Relacionar lo visto con el uso de APIs en clases siguientes.
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 1: Mi Portal UC
+
+[portal.uc.cl](https://portal.uc.cl)
+
+- Necesitaremos manejar de manera *segura* nuestros [secretos](https://cran.r-project.org/web/packages/httr/vignettes/secrets.html).
+
+  - Contraseñas o TOKENS para acceso a servicios.
+  
+- Uso de variables de entorno: `usethis::edit_r_environ()`.
+
+```
+# Dentro del archivo .Renviron
+CLAVE=password
+```
+
+Se accede a las variables contenidas en él:
+
+```{r}
+Sys.getenv('PASSWORD_TEST')
+```
+
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 2: Ciudades Amigables
+
+[Hockey Teams](https://www.ciudadesamigables.cl/comunas-amigables/)
+
+- header spoofing
+
+
+---
+class: fullscreen, left, middle, invert
+
+## Ejemplo 3: Twitter API
+
+Uso de [Twitter API v2](https://developer.twitter.com/apitools/) 
+
+- Mostrar la relación entre lo ya visto y el uso de APIs de servicios web.
+
+
+---
+
+## Taller: sitios web
+
+Vamos al [código de alumnos](class_6_alumnos.R).
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+<https://github.com/caayala/web_scraping_soc40XX>
+
+<https://caayala.github.io/web_scraping_soc40XX/>
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+<br>
+Cristián Ayala  
+<https://blog.desuc.cl/>  
+<http://github.com/caayala>
