@@ -20,8 +20,8 @@ s <- session(url = url_outh)
 
 s_form <- html_form(s)[[1]]
 s_form <- html_form_set(s_form,
-                        username = 'caayala',
-                        password = Sys.getenv('GPASS'))
+                        username = 'USERNAME',
+                        password = 'PASSWORD')
 
 session_submit(s, s_form)
 
@@ -61,16 +61,11 @@ url_captura <- 'https://portal.uc.cl/c/portal/render_portlet?p_l_id=10230&p_p_id
 parse_url(url_captura)
 
 # EJERCICIO:
-# Crear el query a partir del link anterior:
+# Crear el query a partir del link anterior: url_portal_render_personal
 
-url_portal_render$query <- list(p_l_id = 10230,
-                                p_p_id = 'DatosPersonales_WAR_LPT022_DatosPersonales',
-                                p_p_lifecycle = 0,
-                                p_p_state = 'normal',
-                                p_p_mode = 'view',
-                                p_p_col_id = 'column-1',
-                                p_p_col_pos = 0,
-                                p_p_col_count = 1)
+
+
+
 
 url_portal_render_personal <- build_url(url_portal_render)
 
@@ -92,45 +87,31 @@ url_home <- 'https://www.ciudadesamigables.cl/comunas-amigables/'
 
 home_s <- session(url_home)
 
-status_code(home_s)
 
-home_html <- home_s |> 
-  read_html() 
 
 # EJERCICIO:
 # ¿Está la tabla de interés?
 
-# No encontramos lo que buscamos:
-home_html |> 
-  html_elements('.overflow-auto')
-  
-# No hay un formulario.
-html_form(home_html)
+
 
 
 # EJERCICIO:
 # Buscar el *request* que entrega la información con los datos municipales.
 
-# El servidor entrega resultados desde:
-url_consulta <- 'https://www.ciudadesamigables.cl/api/comunas-filters/'
 
-home_input <- home_html |> 
-  html_elements('input')
+
 
 # EJERCICIO:
 # Construir y capturar ese link. ¿Qué sucede?
 
-web_token <- setNames(home_input |> html_attr('value'),
-                      paste0('X-', home_input |> html_attr('name')))
-
 x_data <- session_jump_to(home_s,
-                          url_consulta,
-                          add_headers('X-Requested-With' = 'XMLHttpRequest',
-                                      web_token),
-                          accept_json(),
-                          query = list(page = 1,
-                                       status = '1|2|3|4|5|6',
-                                       cycle = '1|2'))
+                          url_consulta
+                          
+                          
+                          
+                          
+                          )
+
 json_comunas <- x_data$response |> 
   content(type = 'text') |> 
   jsonlite::fromJSON()
@@ -149,22 +130,7 @@ pages <- 1:39
 # Construir función para capturar las sucesivas páginas con información.
 
 json_page <- function(.page){
-  data <- session_jump_to(home_s,
-                          url_consulta,
-                          add_headers('X-Requested-With' = 'XMLHttpRequest',
-                                      web_token),
-                          accept_json(),
-                          query = list(page = .page,
-                                       status = '1|2|3|4|5|6',
-                                       cycle = '1|2'))
-  data <- data$response |> 
-    content(type = 'text') |> 
-    jsonlite::fromJSON()
-  
-  # Pausa para no recargar el servidor.
-  Sys.sleep(1)
-  
-  data$comunas
+
 }
 
 df_comunas <- map_dfr(1:2, json_page)
