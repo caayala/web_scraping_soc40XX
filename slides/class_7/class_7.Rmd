@@ -45,7 +45,7 @@ Grupo de paquetes interrelacionados:
 
 - [googledrive](https://googledrive.tidyverse.org) : interacción con archivos completos en Google Drive.
 
-- [googlesheets4](https://googlesheets4.tidyverse.org): intereacción con planillas en Google Sheet.
+- [googlesheets4](https://googlesheets4.tidyverse.org): interacción con planillas en Google Sheet.
 
 Mención para:
 
