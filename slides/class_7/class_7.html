@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Clase 7: Uso de googlesheets4</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Clase 7: Uso de googlesheets4
+]
+.subtitle[
+## Web Scraping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+## Motivación
+
+- Disponer de lugares desde donde se puedan leer y guardar datos durante su recolección, análisis y difusión.
+
+- Disminuir la cantidad de pasos manuales que puedan provocar errores en la transferencia de información.
+
+- Ejemplo: Leer una planilla para procesar datos de una encuesta y guardar una tabla de frecuencia en una planilla nueva.
+
+---
+
+## Paquetes para la clase de hoy
+
+Grupo de paquetes interrelacionados:
+
+- [googledrive](https://googledrive.tidyverse.org) : interacción con archivos completos en Google Drive.
+
+- [googlesheets4](https://googlesheets4.tidyverse.org): interacción con planillas en Google Sheet.
+
+Mención para:
+
+- [gargle](https://gargle.r-lib.org): Maneja ---tras bambalinas--- la autentificación con Google para usar sus APIs.
+
+
+
+---
+
+## Autentificación
+
+.pull-left.font70[
+- Manejo de [secretos](https://cran.r-project.org/web/packages/httr/vignettes/secrets.html): administración de claves y tokens de acceso.
+
+- Necesitamos guardar un token para acceder a la API de Google Sheets:
+
+&gt; Every request your application sends to the Google Sheets API needs to [identify your application to Google](https://developers.google.com/sheets/api/guides/authorizing). There are two ways to identify your application: using an OAuth 2.0 token (which also authorizes the request) and/or using the application's API key.
+
+- `gargle` tiene eso cubierto. Para registrarse:
+
+  - Credenciales quedan guardadas en `~/Library/Caches/gargle` (para macOS).
+]
+
+.pull-right.font70[
+- Lista de tokens que tengo almacenado:
+
+
+```r
+gargle::gargle_oauth_sitrep()
+```
+
+```
+## 4 tokens found in this gargle OAuth cache:
+```
+
+```
+## '~/Library/Caches/gargle'
+```
+
+```
+## 
+```
+
+```
+## email             app            scopes          hash...   
+## _________________ ______________ _______________ __________
+## caayala@gmail.com tidyverse-clio ...drive        20061ab...
+## caayala@uc.cl     tidyverse-clio ...drive        20061ab...
+## caayala@gmail.com tidyverse-clio ...spreadsheets 9566fe0...
+## caayala@uc.cl     tidyverse-clio ...spreadsheets 9566fe0...
+```
+]
+
+---
+
+## Google Sheets: estructura de links
+
+El link a una planilla en Google Sheets tiene la siguiente forma:
+
+`https://docs.google.com/spreadsheets/d/PLANILLA_ID/edit#gid=HOJA_ID`
+
+En nuestro ejemplo:
+
+- PLANILLA_ID: `ss` (spreadsheet_id) `1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE`
+- HOJA_ID: (sheet_id) `1708839289`
+
+.font70[
+Hoja *Web Scraping - Bicentenario UC* queda así:
+
+
+```r
+httr::parse_url('https://docs.google.com/spreadsheets/d/1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE/edit#gid=1708839289') |&gt; 
+  discard(is.null)
+```
+
+```
+## $scheme
+## [1] "https"
+## 
+## $hostname
+## [1] "docs.google.com"
+## 
+## $path
+## [1] "spreadsheets/d/1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE/edit"
+## 
+## $fragment
+## [1] "gid=1708839289"
+```
+]
+
+
+---
+
+## Google Drive: búsqueda de archivo 1
+
+[Planilla][planilla] la respuesta a tres preguntas de Bicentenario 2022.
+
+[planilla]:https://docs.google.com/spreadsheets/d/1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE
+
+
+```r
+library(googledrive)
+# Elección de cuenta si es que se tienen varias
+options(gargle_oauth_email = "caayala@uc.cl")
+```
+
+- Para encontrar indicadores de un archivo en Google Drive, `googledrive` provee funciones para su búsqueda:
+
+
+```r
+# Solo spreadsheet
+# Al acceder al servicio por primera vez, debiese preguntar por las credenciales.
+(ss_b &lt;- googledrive::drive_find('Web Scraping', type = 'spreadsheet'))
+```
+
+```
+## # A dribble: 1 × 3
+##   name                           id                               drive_resource
+##   &lt;chr&gt;                          &lt;drv_id&gt;                         &lt;list&gt;        
+## 1 Web Scraping - Bicentenario UC 1dLKhkb13MFlgQuOF6q8WC_jzWY7jKd… &lt;named list&gt;
+```
+
+
+---
+
+## Google Drive: búsqueda de archivo 2
+
+El indicador del archivo:
+
+.font70[
+
+```r
+ss_b$drive_resource |&gt; str(1)
+```
+
+```
+## List of 1
+##  $ :List of 36
+```
+]
+
+Contiene mucha otra información:
+
+.font70[
+
+```r
+ss_b$drive_resource[[1]] |&gt; names()
+```
+
+```
+##  [1] "kind"                         "id"                          
+##  [3] "name"                         "mimeType"                    
+##  [5] "starred"                      "trashed"                     
+##  [7] "explicitlyTrashed"            "parents"                     
+##  [9] "spaces"                       "version"                     
+## [11] "webViewLink"                  "iconLink"                    
+## [13] "hasThumbnail"                 "thumbnailLink"               
+## [15] "thumbnailVersion"             "viewedByMe"                  
+## [17] "viewedByMeTime"               "createdTime"                 
+## [19] "modifiedTime"                 "modifiedByMeTime"            
+## [21] "modifiedByMe"                 "owners"                      
+## [23] "lastModifyingUser"            "shared"                      
+## [25] "ownedByMe"                    "capabilities"                
+## [27] "viewersCanCopyContent"        "copyRequiresWriterPermission"
+## [29] "writersCanShare"              "permissions"                 
+## [31] "permissionIds"                "size"                        
+## [33] "quotaBytesUsed"               "isAppAuthorized"             
+## [35] "exportLinks"                  "linkShareMetadata"
+```
+]
+
+---
+
+## Google Drive: búsqueda de archivo 3
+
+También se pueden buscar entre otros tipos de archivos:
+
+
+```r
+# Solo archivos pdf
+googledrive::drive_find('Web Scraping', type = 'pdf')
+```
+
+```
+## # A dribble: 1 × 3
+##   name                             id                             drive_resource
+##   &lt;chr&gt;                            &lt;drv_id&gt;                       &lt;list&gt;        
+## 1 Web Scraping - Programa 2022.pdf 1zcZTpzA_3JUUcjGbCUC1m1W5xiep… &lt;named list&gt;
+```
+
+O buscar entre todo:
+
+```r 
+# Todo tipo de archivos. Toma su tiempo
+googledrive::drive_find('Web Scraping')
+```
+
+
+---
+
+## Google Sheets: autentificación y lectura 1
+
+
+```r
+library(googlesheets4)
+```
+
+```
+## 
+## Attaching package: 'googlesheets4'
+```
+
+```
+## The following objects are masked from 'package:googledrive':
+## 
+##     request_generate, request_make
+```
+
+Se puede individualizar un archivo mediante su `dribble`, a partir 
+
+
+```r
+class(ss_b)
+```
+
+```
+## [1] "dribble"    "tbl_df"     "tbl"        "data.frame"
+```
+
+
+```r
+# Al acceder al servicio por primera vez, debiese preguntar por las credenciales.
+df_1 &lt;- read_sheet(ss = ss_b,
+                   sheet = 'bicentenario_2020.csv')
+```
+
+```
+## ✔ Reading from "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Range ''bicentenario_2020.csv''.
+```
+
+```r
+head(df_1)
+```
+
+```
+## # A tibble: 6 × 6
+##   `Folio encuesta` `Registrar Sexo` edad_cat `1 - (Eliminar l…` `2 - (Ser un p…`
+##              &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;              &lt;dbl&gt;            &lt;dbl&gt;
+## 1           100101                2        2                  4                3
+## 2           100102                2        3                  3                3
+## 3           100103                1        4                  3                3
+## 4           100104                2        5                  3                3
+## 5           100105                2        2                  3                2
+## 6           100106                2        3                  3                3
+## # … with 1 more variable:
+## #   `3 - (Detener el daño al medio ambiente) Para comenzar, le voy a enumerar una serie de metas que Chile se ha propuesto para el futuro. Pensando en un plazo de 10 años, ¿Ud. cree que se habrán alcanzado estas metas, se habrá avanzado, se seguirá igual que` &lt;dbl&gt;
+```
+
+
+---
+
+## Google Sheets: autentificación y lectura 2
+
+Acceso con la url completa:
+
+
+```r
+url_sheet &lt;- 'https://docs.google.com/spreadsheets/d/1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE/'
+
+df_2 &lt;- read_sheet(ss = url_sheet,
+                   sheet = 'bicentenario_2020.csv')
+```
+
+```
+## ✔ Reading from "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Range ''bicentenario_2020.csv''.
+```
+
+```r
+head(df_2)
+```
+
+```
+## # A tibble: 6 × 6
+##   `Folio encuesta` `Registrar Sexo` edad_cat `1 - (Eliminar l…` `2 - (Ser un p…`
+##              &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;              &lt;dbl&gt;            &lt;dbl&gt;
+## 1           100101                2        2                  4                3
+## 2           100102                2        3                  3                3
+## 3           100103                1        4                  3                3
+## 4           100104                2        5                  3                3
+## 5           100105                2        2                  3                2
+## 6           100106                2        3                  3                3
+## # … with 1 more variable:
+## #   `3 - (Detener el daño al medio ambiente) Para comenzar, le voy a enumerar una serie de metas que Chile se ha propuesto para el futuro. Pensando en un plazo de 10 años, ¿Ud. cree que se habrán alcanzado estas metas, se habrá avanzado, se seguirá igual que` &lt;dbl&gt;
+```
+
+
+---
+
+## Google Sheets: autentificación y lectura 3
+
+Acceso sabiendo el id de la planilla:
+
+
+```r
+ss &lt;- '1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE'
+
+df_3 &lt;- read_sheet(ss = ss,
+                   sheet = 'bicentenario_2020.csv')
+```
+
+```
+## ✔ Reading from "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Range ''bicentenario_2020.csv''.
+```
+
+.font70[
+
+```r
+head(df_3)
+```
+
+```
+## # A tibble: 6 × 6
+##   `Folio encuesta` `Registrar Sexo` edad_cat `1 - (Eliminar l…` `2 - (Ser un p…`
+##              &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;              &lt;dbl&gt;            &lt;dbl&gt;
+## 1           100101                2        2                  4                3
+## 2           100102                2        3                  3                3
+## 3           100103                1        4                  3                3
+## 4           100104                2        5                  3                3
+## 5           100105                2        2                  3                2
+## 6           100106                2        3                  3                3
+## # … with 1 more variable:
+## #   `3 - (Detener el daño al medio ambiente) Para comenzar, le voy a enumerar una serie de metas que Chile se ha propuesto para el futuro. Pensando en un plazo de 10 años, ¿Ud. cree que se habrán alcanzado estas metas, se habrá avanzado, se seguirá igual que` &lt;dbl&gt;
+```
+]
+
+
+---
+
+## Google Sheets: Características de la planilla 1
+
+Datos del archivo mediante su `ss_id` o `dribble` (ss_b):
+
+
+```r
+gs4_get(ss)
+```
+
+```
+## Spreadsheet name: Web Scraping - Bicentenario UC
+##               ID: 1dLKhkb13MFlgQuOF6q8WC_jzWY7jKdwGhLLtTkmujUE
+##           Locale: es_CL
+##        Time zone: America/Santiago
+##      # of sheets: 4
+## 
+##          (Sheet name): (Nominal extent in rows x columns)
+##             variables: 12 x 3
+##               niveles: 12 x 3
+## bicentenario_2020.csv: 2048 x 7
+##            resultados: 6 x 8
+```
+
+
+---
+
+## Google Sheets: Características de la planilla 2
+
+Datos de las hojas del archivo: Útil para tener el `HOJA_ID`.
+
+
+```r
+sheet_properties(ss)
+```
+
+```
+## # A tibble: 4 × 8
+##   name                  index     id type  visible grid_rows grid_columns data  
+##   &lt;chr&gt;                 &lt;int&gt;  &lt;int&gt; &lt;chr&gt; &lt;lgl&gt;       &lt;int&gt;        &lt;int&gt; &lt;list&gt;
+## 1 variables                 0 1.71e9 GRID  TRUE           12            3 &lt;NULL&gt;
+## 2 niveles                   1 1.63e9 GRID  TRUE           12            3 &lt;NULL&gt;
+## 3 bicentenario_2020.csv     2 0      GRID  TRUE         2048            7 &lt;NULL&gt;
+## 4 resultados                3 2.88e7 GRID  TRUE            6            8 &lt;NULL&gt;
+```
+
+
+---
+
+## Lectura de hojas 1
+
+`read_sheet` entrega una `tibble`. Se debe indicar una hoja.
+
+
+```r
+df_base &lt;- read_sheet(ss, sheet = 'bicentenario_2020.csv')
+df_niv  &lt;- read_sheet(ss, sheet = 'niveles')
+df_var  &lt;- read_sheet(ss, sheet = 'variables')
+```
+
+Lectura como list--column:
+
+
+```r
+head(df_var, 4)
+```
+
+```
+## # A tibble: 4 × 3
+##   variables tipo  bicentenario_2020.csv
+##   &lt;chr&gt;     &lt;chr&gt; &lt;list&gt;               
+## 1 encuesta  &lt;NA&gt;  &lt;chr [1]&gt;            
+## 2 sheet     &lt;NA&gt;  &lt;chr [1]&gt;            
+## 3 casos     &lt;NA&gt;  &lt;dbl [1]&gt;            
+## 4 variables &lt;NA&gt;  &lt;dbl [1]&gt;
+```
+
+
+---
+
+## Lectura de hojas 2
+
+Control del tipo de variable de cada columna con atributo `col_types`.
+
+
+```r
+df_var  &lt;- read_sheet(ss, sheet = 'variables',
+                      col_types = 'c') # tipo de variable se recicla.
+
+head(df_var, 4)
+```
+
+```
+## # A tibble: 4 × 3
+##   variables tipo  bicentenario_2020.csv
+##   &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;                
+## 1 encuesta  &lt;NA&gt;  Bicentenario 2020    
+## 2 sheet     &lt;NA&gt;  bicentenario_2020.csv
+## 3 casos     &lt;NA&gt;  2047                 
+## 4 variables &lt;NA&gt;  15
+```
+
+
+---
+
+## Lectura de información por celda 1
+
+`range_read_cells` permite leer información en cada celda: 
+
+- valores: `cell_data = c("default")`
+- valores y formato: `cell_data = c("full")`
+
+
+```r
+df_cels &lt;- range_read_cells(ss, sheet = 'bicentenario_2020.csv', 
+                            cell_data = 'default')
+```
+
+```
+## ✔ Reading from "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Range ''bicentenario_2020.csv''.
+```
+
+```r
+head(df_cels, 3)
+```
+
+```
+## # A tibble: 3 × 4
+##     row   col loc   cell      
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;list&gt;    
+## 1     1     1 A1    &lt;CELL_TEX&gt;
+## 2     1     2 B1    &lt;CELL_TEX&gt;
+## 3     1     3 C1    &lt;CELL_TEX&gt;
+```
+
+
+---
+
+## Lectura de información por celda 2
+
+Información de valores por celda:
+
+.font70[
+
+```r
+df_cels[1,] |&gt; str()
+```
+
+```
+## tibble [1 × 4] (S3: tbl_df/tbl/data.frame)
+##  $ row : int 1
+##  $ col : int 1
+##  $ loc : chr "A1"
+##  $ cell:List of 1
+##   ..$ :List of 2
+##   .. ..$ effectiveValue:List of 1
+##   .. .. ..$ stringValue: chr "Folio encuesta"
+##   .. ..$ formattedValue: chr "Folio encuesta"
+##   .. ..- attr(*, "class")= chr [1:2] "CELL_TEXT" "SHEETS_CELL"
+```
+]
+
+---
+
+## Lectura de información por celda 3
+
+Información de la primera celda
+
+
+```r
+df_cels$cell[[1]]
+```
+
+```
+## $effectiveValue
+## $effectiveValue$stringValue
+## [1] "Folio encuesta"
+## 
+## 
+## $formattedValue
+## [1] "Folio encuesta"
+## 
+## attr(,"class")
+## [1] "CELL_TEXT"   "SHEETS_CELL"
+```
+
+
+---
+
+## Lectura de información por celda 4
+
+Extraer el dato de valor formateado `formattedValue` para cada celdilla.
+
+
+```r
+df_cels |&gt; 
+  rowwise() |&gt; 
+  mutate(formattedValue = pluck(cell, 'formattedValue'))
+```
+
+```
+## # A tibble: 12,288 × 5
+## # Rowwise: 
+##      row   col loc   cell       formattedValue                                  
+##    &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;list&gt;     &lt;chr&gt;                                           
+##  1     1     1 A1    &lt;CELL_TEX&gt; Folio encuesta                                  
+##  2     1     2 B1    &lt;CELL_TEX&gt; Registrar Sexo                                  
+##  3     1     3 C1    &lt;CELL_TEX&gt; edad_cat                                        
+##  4     1     4 D1    &lt;CELL_TEX&gt; 1 - (Eliminar la pobreza) Para comenzar, le voy…
+##  5     1     5 E1    &lt;CELL_TEX&gt; 2 - (Ser un país desarrollado) Para comenzar, l…
+##  6     1     6 F1    &lt;CELL_TEX&gt; 3 - (Detener el daño al medio ambiente) Para co…
+##  7     2     1 A2    &lt;CELL_NUM&gt; 100101                                          
+##  8     2     2 B2    &lt;CELL_NUM&gt; 2                                               
+##  9     2     3 C2    &lt;CELL_NUM&gt; 2                                               
+## 10     2     4 D2    &lt;CELL_NUM&gt; 4                                               
+## # … with 12,278 more rows
+```
+
+
+---
+
+## Lectura de información completa 1
+
+- Leeremos valores y formato.
+
+
+```r
+df_cels_full &lt;- range_read_cells(ss, sheet = 'bicentenario_2020.csv', 
+                                 cell_data = 'full')
+```
+
+```
+## ✔ Reading from "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Range ''bicentenario_2020.csv''.
+```
+
+```r
+head(df_cels_full)
+```
+
+```
+## # A tibble: 6 × 4
+##     row   col loc   cell      
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;list&gt;    
+## 1     1     1 A1    &lt;CELL_TEX&gt;
+## 2     1     2 B1    &lt;CELL_TEX&gt;
+## 3     1     3 C1    &lt;CELL_TEX&gt;
+## 4     1     4 D1    &lt;CELL_TEX&gt;
+## 5     1     5 E1    &lt;CELL_TEX&gt;
+## 6     1     6 F1    &lt;CELL_TEX&gt;
+```
+
+
+---
+
+## Lectura de información completa 2
+
+Mucha mayor información sobre formato.
+
+.font70[
+
+```r
+df_cels_full[1,]$cell |&gt; str(3)
+```
+
+```
+## List of 1
+##  $ :List of 5
+##   ..$ userEnteredValue :List of 1
+##   .. ..$ stringValue: chr "Folio encuesta"
+##   ..$ effectiveValue   :List of 1
+##   .. ..$ stringValue: chr "Folio encuesta"
+##   ..$ formattedValue   : chr "Folio encuesta"
+##   ..$ userEnteredFormat:List of 5
+##   .. ..$ backgroundColor     :List of 3
+##   .. ..$ verticalAlignment   : chr "BOTTOM"
+##   .. ..$ wrapStrategy        : chr "OVERFLOW_CELL"
+##   .. ..$ textFormat          :List of 4
+##   .. ..$ backgroundColorStyle:List of 1
+##   ..$ effectiveFormat  :List of 8
+##   .. ..$ backgroundColor     :List of 3
+##   .. ..$ padding             :List of 4
+##   .. ..$ horizontalAlignment : chr "LEFT"
+##   .. ..$ verticalAlignment   : chr "BOTTOM"
+##   .. ..$ wrapStrategy        : chr "OVERFLOW_CELL"
+##   .. ..$ textFormat          :List of 8
+##   .. ..$ hyperlinkDisplayType: chr "PLAIN_TEXT"
+##   .. ..$ backgroundColorStyle:List of 1
+##   ..- attr(*, "class")= chr [1:2] "CELL_TEXT" "SHEETS_CELL"
+```
+
+Podemos trabajar con esta información.
+]
+
+
+---
+
+## Lectura de información completa 3
+
+Extracción del color de las celdas para obtener el folio de celdas con valor perdido:
+
+
+```r
+df_cels_folio_color &lt;- df_cels_full |&gt; 
+  filter(col == 1) |&gt;  # Folio está en columna 1
+  rowwise() |&gt; 
+  mutate(formattedValue = pluck(cell, 'formattedValue') |&gt; str_trunc(width = 15),
+         backgroundColorStyle = list(
+           pluck(cell, 'effectiveFormat', 'backgroundColor')))
+
+# Sencillo revisar los colores como hex: 
+df_cels_folio_color$hex &lt;- map_chr(df_cels_folio_color$backgroundColorStyle, 
+                                   ~rlang::inject(rgb(!!!.)))
+
+table(df_cels_folio_color$hex)
+```
+
+```
+## 
+## #F4CCCC #FBBC04 #FFFFFF 
+##      18       1    2029
+```
+
+---
+
+## Lectura de información completa 4
+
+Folios destacados en la base original por tener color de fondo `#F4CCCC`
+
+
+```r
+df_cels_folio_color |&gt; 
+  filter(hex == '#F4CCCC') |&gt; 
+  pull(formattedValue)
+```
+
+```
+##  [1] "100801" "101305" "107206" "114802" "116305" "118004" "118604" "125002"
+##  [9] "125406" "126403" "129401" "131604" "131705" "133402" "135906" "136203"
+## [17] "140601" "203302"
+```
+
+
+---
+
+## Base de datos: variables
+
+Nombre de variables:
+
+
+```r
+df_var_orden &lt;- df_var[match(names(df_base), df_var$bicentenario_2020.csv), ]
+
+names(df_base) &lt;- df_var_orden$variables
+
+head(df_base, 2)
+```
+
+```
+## # A tibble: 2 × 6
+##    folio  sexo tramo_edad  s1_1  s1_2  s1_3
+##    &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 100101     2          2     4     3     3
+## 2 100102     2          3     3     3     3
+```
+
+Etiquetas de variables:
+
+
+```r
+var_label(df_base) &lt;- df_var_orden$bicentenario_2020.csv
+```
+
+
+---
+
+## Base de datos: valores 1
+
+Etiquetas de valores:
+
+
+```r
+df_niveles &lt;- df_niv |&gt; 
+  group_nest(tipo, .key = 'niveles') |&gt; 
+  rowwise() |&gt; 
+  mutate(niveles = list(deframe(rev(niveles))))
+
+df_niveles
+```
+
+```
+## # A tibble: 3 × 2
+## # Rowwise: 
+##   tipo        niveles  
+##   &lt;chr&gt;       &lt;list&gt;   
+## 1 t_alzanzado &lt;dbl [4]&gt;
+## 2 t_edad      &lt;dbl [5]&gt;
+## 3 t_sexo      &lt;dbl [2]&gt;
+```
+
+
+---
+
+## Base de datos: valores 2
+
+Etiquetas de valores:
+
+
+```r
+df_niveles |&gt; str(3)
+```
+
+```
+## rowwise_df [3 × 2] (S3: rowwise_df/tbl_df/tbl/data.frame)
+##  $ tipo   : chr [1:3] "t_alzanzado" "t_edad" "t_sexo"
+##  $ niveles:List of 3
+##   ..$ : Named num [1:4] 1 2 3 4
+##   .. ..- attr(*, "names")= chr [1:4] "Se habrá retrocedido" "Se estará igual" "Se habrá avanzado" "Se habrá alcanzado"
+##   ..$ : Named num [1:5] 1 2 3 4 5
+##   .. ..- attr(*, "names")= chr [1:5] "18-24" "25-34" "35-44" "45-54" ...
+##   ..$ : Named num [1:2] 1 2
+##   .. ..- attr(*, "names")= chr [1:2] "Hombre" "Mujer"
+##  - attr(*, "groups")= tibble [3 × 1] (S3: tbl_df/tbl/data.frame)
+```
+
+
+---
+
+## Base de datos: valores 3
+
+Vector que relaciona variable y tipo de escalas asociadas.
+
+.font70[
+
+```r
+v_values &lt;- df_var_orden |&gt; 
+  filter(!is.na(tipo)) |&gt; 
+  pull(tipo, variables)
+
+v_values
+```
+
+```
+##          sexo    tramo_edad          s1_1          s1_2          s1_3 
+##      "t_sexo"      "t_edad" "t_alzanzado" "t_alzanzado" "t_alzanzado"
+```
+]
+
+Se usará para agregar las etiquetas en las variables correspondientes.
+
+
+---
+
+## Base de datos: valores 4
+
+Lista de variables con sus etiquetas.
+
+.font40[
+
+```r
+value_list &lt;- structure(df_niveles$niveles[match(as.character(v_values), 
+                                                 df_niveles$tipo)],
+                        names = names(v_values))
+value_list
+```
+
+```
+## $sexo
+## Hombre  Mujer 
+##      1      2 
+## 
+## $tramo_edad
+##    18-24    25-34    35-44    45-54 55 y más 
+##        1        2        3        4        5 
+## 
+## $s1_1
+## Se habrá retrocedido      Se estará igual    Se habrá avanzado 
+##                    1                    2                    3 
+##   Se habrá alcanzado 
+##                    4 
+## 
+## $s1_2
+## Se habrá retrocedido      Se estará igual    Se habrá avanzado 
+##                    1                    2                    3 
+##   Se habrá alcanzado 
+##                    4 
+## 
+## $s1_3
+## Se habrá retrocedido      Se estará igual    Se habrá avanzado 
+##                    1                    2                    3 
+##   Se habrá alcanzado 
+##                    4
+```
+]
+
+---
+
+## Base de datos: valores 5
+
+Agregar valores según vector anterior.
+
+.font70[
+
+```r
+df_base &lt;- df_base %&gt;%
+  set_value_labels(!!!value_list)
+
+df_base |&gt; 
+  head()
+```
+
+```
+## # A tibble: 6 × 6
+##    folio       sexo   tramo_edad                   s1_1             s1_2    s1_3
+##    &lt;dbl&gt;  &lt;dbl+lbl&gt;    &lt;dbl+lbl&gt;              &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt; &lt;dbl+l&gt;
+## 1 100101 2 [Mujer]  2 [25-34]    4 [Se habrá alcanzado] 3 [Se habrá ava… 3 [Se …
+## 2 100102 2 [Mujer]  3 [35-44]    3 [Se habrá avanzado]  3 [Se habrá ava… 3 [Se …
+## 3 100103 1 [Hombre] 4 [45-54]    3 [Se habrá avanzado]  3 [Se habrá ava… 2 [Se …
+## 4 100104 2 [Mujer]  5 [55 y más] 3 [Se habrá avanzado]  3 [Se habrá ava… 1 [Se …
+## 5 100105 2 [Mujer]  2 [25-34]    3 [Se habrá avanzado]  2 [Se estará ig… 2 [Se …
+## 6 100106 2 [Mujer]  3 [35-44]    3 [Se habrá avanzado]  3 [Se habrá ava… 3 [Se …
+```
+]
+
+
+---
+
+## Respuestas: tabla de frecuencia 1
+
+Construir tabla de resultados de `s1_1` según sexo y categoría de edad
+
+.font70[
+
+```r
+df_base_fct &lt;- df_base |&gt; 
+  mutate(across(everything(), as_factor))
+
+df_base_fct |&gt; 
+  head(3)
+```
+
+```
+## # A tibble: 3 × 6
+##   folio  sexo   tramo_edad s1_1               s1_2              s1_3            
+##   &lt;fct&gt;  &lt;fct&gt;  &lt;fct&gt;      &lt;fct&gt;              &lt;fct&gt;             &lt;fct&gt;           
+## 1 100101 Mujer  25-34      Se habrá alcanzado Se habrá avanzado Se habrá avanza…
+## 2 100102 Mujer  35-44      Se habrá avanzado  Se habrá avanzado Se habrá avanza…
+## 3 100103 Hombre 45-54      Se habrá avanzado  Se habrá avanzado Se estará igual
+```
+]
+
+
+---
+
+## Respuestas: tabla de frecuencia 2
+
+Función para número de respuesta por categoría y variable
+
+.font40[
+
+```r
+f_tabla &lt;- function(.df, .cat, .var){
+  .df |&gt; 
+    count({{ .cat }}, {{ .var }}) |&gt; 
+    pivot_wider(names_from = {{ .cat }}, values_from = n)  
+}
+
+df_tabla &lt;- map(rlang::exprs(sexo, tramo_edad), ~f_tabla(df_base_fct, !!., s1_1))
+
+df_tabla
+```
+
+```
+## [[1]]
+## # A tibble: 5 × 3
+##   s1_1                 Hombre Mujer
+##   &lt;fct&gt;                 &lt;int&gt; &lt;int&gt;
+## 1 Se habrá retrocedido     17    35
+## 2 Se estará igual         195   290
+## 3 Se habrá avanzado       430   759
+## 4 Se habrá alcanzado      109   207
+## 5 9                         1     4
+## 
+## [[2]]
+## # A tibble: 5 × 6
+##   s1_1                 `18-24` `25-34` `35-44` `45-54` `55 y más`
+##   &lt;fct&gt;                  &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;      &lt;int&gt;
+## 1 Se habrá retrocedido      12       6       7      10         17
+## 2 Se estará igual           66      92      68      82        177
+## 3 Se habrá avanzado        148     211     193     217        420
+## 4 Se habrá alcanzado        29      53      34      55        145
+## 5 9                          1       1      NA      NA          3
+```
+]
+
+
+---
+
+## Respuestas: tabla de frecuencia 3
+
+.font70[
+Función para número de respuesta por categoría y variable
+
+
+```r
+df_tabla &lt;- df_tabla |&gt; 
+  reduce(left_join, by = 's1_1')
+
+df_tabla
+```
+
+```
+## # A tibble: 5 × 8
+##   s1_1                 Hombre Mujer `18-24` `25-34` `35-44` `45-54` `55 y más`
+##   &lt;fct&gt;                 &lt;int&gt; &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;      &lt;int&gt;
+## 1 Se habrá retrocedido     17    35      12       6       7      10         17
+## 2 Se estará igual         195   290      66      92      68      82        177
+## 3 Se habrá avanzado       430   759     148     211     193     217        420
+## 4 Se habrá alcanzado      109   207      29      53      34      55        145
+## 5 9                         1     4       1       1      NA      NA          3
+```
+]
+
+
+---
+
+## Escribir en Google Sheets 1
+
+Escritura de tabla de frecuencia en nueva hoja en la [planilla][planilla].
+
+- Esto debiese ser posible solo para quienes tienen *permisos de edición* de la hoja.
+
+.font70[
+
+No considera el formato de la hoja de destino, mostrando una tabla:
+
+
+```r
+# Reemplaza formatos en la hoja de destino
+df_tabla |&gt; 
+  sheet_write(ss,
+              sheet = 'resultados')
+```
+]
+
+
+---
+
+## Escribir en Google Sheets 2
+
+.font70[
+Eliminar contenido en hoja `resultados`
+
+
+```r
+range_clear(ss, sheet = 'resultados', reformat = TRUE)
+```
+
+Considerando el formato de la hoja de destino:
+
+
+```r
+# NO reemplaza formatos en la hoja de destino
+range_write(ss,
+            df_tabla,
+            sheet = 'resultados',
+            reformat = FALSE)
+```
+
+```
+## ✔ Editing "Web Scraping - Bicentenario UC".
+```
+
+```
+## ✔ Writing to sheet 'resultados'.
+```
+]
+
+---
+
+## En el próximo taller… 
+
+- Autentificación
+
+- Uso de Google Drive y Google Sheets
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+
+&lt;https://caayala.github.io/web_scraping_soc40XX/&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

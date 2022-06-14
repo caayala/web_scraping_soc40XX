@@ -223,20 +223,30 @@ df_tweets$data |>
 # 
 
 library(academictwitteR)
+library(lubridate)
 
 # Base de datos de tweets
 df_tweets_all <- readRDS('slides/class_6/class_6_taller/df_tweets_encuesta_cep.rds')
 
-tweets_n <- academictwitteR::count_all_tweets(query = "#EncuestaCEP",
-                                              start_tweets = '2022-06-09T15:00:00Z', #UCT-4
-                                              end_tweets   = '2022-06-10T01:00:00Z')
+start_date <- as.POSIXct('2022-06-09 11:00:00', tz = Sys.timezone())
+end_date   <- as.POSIXct('2022-06-09 23:59:00', tz = Sys.timezone())
+
+f_date_for_twitter <- function(.date){
+  .date |>
+    with_tz(tzone = 'UCT') |> # Cambio de zona para pasar de hora chilena a UCT.
+    format('%Y-%m-%dT%H:%M:%SZ')
+}
+
+tweets_n <- academictwitteR::count_all_tweets(query = '#EncuestaCEP OR \"Encuesta CEP\"',
+                                              start_tweets = f_date_for_twitter(start_date), #UCT-4
+                                              end_tweets   = f_date_for_twitter(end_date))
 tweets_n
 
 if(!exists('df_tweets_all')){
   df_tweets_all <- academictwitteR::get_all_tweets(query = "#EncuestaCEP",
-                                                   start_tweets = '2022-06-09T15:00:00Z', #UCT-4
-                                                   end_tweets   = '2022-06-10T01:00:00Z',
-                                                   n = 12000,
+                                                   start_tweets = f_date_for_twitter(start_date), #UCT-4
+                                                   end_tweets   = f_date_for_twitter(end_date),
+                                                   n = 20000,
                                                    bearer_token = Sys.getenv('TWITTER_BEARER'),
                                                    file = 'slides/class_6/class_6_taller/df_tweets_encuesta_cep.rds')
 }
@@ -265,8 +275,6 @@ if(!exists('df_users')){
     saveRDS('slides/class_6/class_6_taller/df_users_encuesta_cep.rds')
 }
 
-library(lubridate)
-
 df_tweets_usuario <- left_join(df_tweets_all |> select(id, text, author_id, created_at),
                               df_users |> select(author_id = id, username, name),
                               by = 'author_id') |> 
@@ -284,15 +292,20 @@ df_tweets_usuario |>
 
 # Gráfico
 df_tweets_n <- df_tweets_usuario |> 
-  count(created_at_min)
+  count(created_at_min,
+        mención = if_else(str_detect(text, '#EncuestaCEP'),
+                          '#EncuestaCEP',
+                          'Encuesta CEP'))
 
 df_tweets_usuario$created_at_min |> class()
 
 ggplot(df_tweets_n,
        aes(x = created_at_min,
-           y = n)) +
+           y = n,
+           colour = mención)) +
   geom_line() +
-  scale_x_datetime(date_labels ="%H:%M",
+  scale_x_datetime('Hora',
+                   date_labels ="%H",
                    breaks = '1 hours') +
   labs(title = 'Tweets con hashtag #EncuestaCEP') +
   theme_minimal()
