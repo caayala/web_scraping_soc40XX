@@ -1,0 +1,112 @@
+---
+title: "Clase 8: Taller de dplyr y googlesheet4"
+subtitle: "Web Scraping y acceso a datos desde la web con R"
+author: "<br>Cristián Ayala<br> Director DESUC"
+date: "[github.com/caayala](https://github.com/caayala)"
+output:
+  xaringan::moon_reader:
+    lib_dir: "libs"
+    css: ["default", "default-fonts", "../gentle-r.css"]
+    df_print: default
+    nature:
+      ratio: 16:9
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+      slideNumberFormat: "%current%"
+editor_options: 
+  chunk_output_type: console
+---
+layout: false
+
+
+## Hoy veremos
+
+- Presentación de proyectos finales
+
+- Programar con dplyr
+  
+- Lectura y manipulación de datos en un Google Sheet.
+
+
+---
+
+## Presentación de proyectos finales
+
+Cada cual deberá presentar:
+
+- Nombre de su proyecto
+
+- Pregunta de investigación que motiva la elección
+
+- Sitio web desde donde obtendrá la data. (Pegar URL en el chat del curso para acceder a él)
+
+
+---
+
+## Ejemplo 1: Programación con dplyr
+
+Manera de reutilizar código y programar con `dplyr` y otras fuciones de `tidyverse` para no repetir código.
+
+- `dplyr` está diseñado para facilitar el análisis interactivo de datos. Facilita la escritura pero dificultando la creación de funciones. Usa: 
+
+  - *data masking*: uso de nombre de columnas de los datos como si fuesen variables del sistema.
+  
+  - *tidy selection*: selección de columnas según nombre, posición o tipo.
+
+Veremos sus ventajas, el problema y como solucionarlo.
+
+
+---
+
+## Ejemplo 2: Modificación de datos de Bicentenario
+
+- Lectura de tabla de resultados de bicentenario.
+
+- Análisis de datos.
+
+- Creación de gráfico.
+
+
+---
+
+## Taller: código
+
+Vamos al [código del taller](class_8_taller.R).
+
+
+---
+
+## Referencias
+
+Programación con dplyr y non standar evaluation (NSE)
+
+- [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html)
+
+- [Useful Tidy Evaluation in R](https://www.youtube.com/watch?v=d2v43jJqn4I). Video.
+
+- [Tidy evaluation is one of the major feature of the latest versions of dplyr and tidyr.](https://www.rstudio.com/resources/webinars/tidy-evaluation-is-one-of-the-major-feature-of-the-latest-versions-of-dplyr-and-tidyr/). Webinar.
+
+- [Metaprogramming](https://adv-r.hadley.nz/meta-big-picture.html). Capítulo de Advanced R.
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+<https://github.com/caayala/web_scraping_soc40XX>
+
+<https://caayala.github.io/web_scraping_soc40XX/>
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+<br>
+Cristián Ayala  
+<https://blog.desuc.cl/>  
+<http://github.com/caayala>
