@@ -37,18 +37,20 @@ Tendremos clases teóricas (T) y prácticas (P).
 |     5 | 2022-06-07 | T    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       |              |                     | [Slides](slides/class_5/class_5#1) [.Rmd](slides/class_5/class_5.Rmd)                                       |
 |     6 | 2022-06-09 | P    | Web Scraping avanzado                              | [`rvest`](https://rvest.tidyverse.org), [`httr`](https://httr.r-lib.org)                       | C2 (20%)     |                     | [Slides](slides/class_6/class_6#1) [.Rmd](slides/class_6/class_6.Rmd) [.R](slides/class_6/class_6_taller.R) |
 |     7 | 2022-06-14 | T    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         |              |                     | [Slides](slides/class_7/class_7#1) [.Rmd](slides/class_7/class_7.Rmd)                                       |
-|     8 | 2022-06-16 | P    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         | Propuesta TF |                     |                                                                                                             |
-|     9 | 2022-06-21 | T    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) |              |                     |                                                                                                             |
-|    10 | 2022-06-23 | P    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) | C3 (20%)     |                     |                                                                                                             |
-|    11 | 2022-06-28 | T    | Recuento                                           |                                                                                                | TF (40%)     |                     |                                                                                                             |
+|     8 | 2022-06-16 | P    | Integración de R con Google Sheets                 | [`googlesheets4`](https://googlesheets4.tidyverse.org)                                         | Propuesta TF |                     | [Slides](slides/class_8/class_8#1) [.Rmd](slides/class_8/class_8.Rmd)                                       |
+|     9 | 2022-06-23 | T    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) |              |                     |                                                                                                             |
+|    10 | 2022-06-28 | P    | Uso de APIs: Spotify y Twitter                     | [`rtweet`](https://docs.ropensci.org/rtweet/) [`spotifyr`](https://www.rcharlie.com/spotifyr/) | C3 (20%)     |                     |                                                                                                             |
+|    11 | 2022-06-30 | T    | Recuento                                           |                                                                                                | TF (40%)     |                     |                                                                                                             |
 
 #### Evaluaciones
 
 -   Control 1 (20%): Captura de página web.
-    [Instrucciones](./homework/c_1)
+    [Instrucciones](./homework/c_1).
+    [Respuesta](./homework/c_1_answers.pdf)
 
 -   Control 2 (20%): Captura datos de cine chileno.
-    [Instrucciones](./homework/c_2)
+    [Instrucciones](./homework/c_2).
+    [Respuesta](./homework/c_2_answers.pdf)
 
 -   Control 3 (20%):
 
