@@ -130,7 +130,7 @@ Selección de datos de interés
 selectores <- c(index = '.lister-item-index',
                 titulo = '.lister-item-header a',
                 anio = '.lister-item-header .lister-item-year',
-                ranking = '.ratings-imdb-rating strong',
+                rating = '.ratings-imdb-rating strong',
                 genero = '.genre')
 
 f_capturar_elementos <- function(.html, .selector, .names_sel){
@@ -197,7 +197,7 @@ df_paliculas_fin <- df_paliculas_fin |>
 
 df_paliculas_fin <- df_paliculas_fin |> 
   mutate(across(c(index), as.integer),
-         across(c(ranking), as.double),
+         across(c(rating), as.double),
          anio = as.Date(paste0(anio, '-01-01', '%Y-%M-$d')))
 
 head(df_paliculas_fin)
@@ -223,18 +223,18 @@ df_peliculas_anio |>
 ```
 
 
-5) Graficar la evolución del el *ranking IMDb* promedio (eje y) *estrenadas desde 1990* a la fecha (eje x).
+5) Graficar la evolución del el *rating IMDb* promedio (eje y) *estrenadas desde 1990* a la fecha (eje x).
 
 ```{r}
 df_peliculas_rank <- df_paliculas_fin |> 
   filter(anio >= as.Date("1990-01-01")) |> 
   group_by(anio) |> 
   summarise(n_peliculas = n(),
-            ranking = mean(ranking, na.rm = TRUE))
+            rating = mean(rating, na.rm = TRUE))
 
 
 df_peliculas_rank |> 
-  ggplot(aes(x = anio, y = ranking,
+  ggplot(aes(x = anio, y = rating,
              fill = n_peliculas,
              size = n_peliculas)) +
   geom_col(width = 60, fill = 'gray50', 
@@ -256,10 +256,10 @@ df_peliculas_rank |>
                         breaks = scales::pretty_breaks(4)) +
   guides(fill = guide_legend(),
          size = guide_legend()) +
-  labs(title = 'Ranking de chilenas por año',
+  labs(title = 'Rating de chilenas por año',
        subtitle = 'Películas desde 1990 en adelante',
        caption = 'Fuente: IMDb.com. Web Scraping y acceso a datos desde la web con R',
-       y = 'Promedio ranking IMDb') +
+       y = 'Promedio rating IMDb') +
   theme_minimal()
 ```
 
@@ -270,14 +270,15 @@ Modificar base para que la unidad de análisis sea `genero`.
 ```{r}
 df_genero <- df_paliculas_fin |> 
   filter(anio >= as.Date("1990-01-01")) |> 
-  select(index, ranking, genero) |> 
+  select(index, rating, genero) |> 
   unnest_longer(col = genero)
 
 df_genero <- df_genero |> 
   group_by(genero) |> 
   summarise(n_peliculas = n(),
-            ranking = mean(ranking, na.rm = TRUE)) |> 
-  arrange(-ranking)
+            n_peliculas_con_rating = sum(!is.na(rating)),
+            rating = mean(rating, na.rm = TRUE)) |> 
+  arrange(-rating)
 
 head(df_genero)
 ```
