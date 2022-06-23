@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Clase 9: Usos de APIs</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Clase 9: Usos de APIs
+]
+.subtitle[
+## Web Scraping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+## Motivación
+
+- Utilizar *puertas* provistas por servicios web para acceder a su información.
+
+  - Wikipedia, Spotify, Twitter.
+
+- Revisar paquetes ya desarrollados para acceder a servicios populares.
+
+---
+
+## Paquetes para la clase de hoy
+
+Grupo de paquetes interrelacionados:
+
+- [WikipediR](https://github.com/Ironholds/WikipediR/): Empaqueta la API de MediaWiki para bajar datos de Wikipedia.
+
+- [spotifyr](https://www.rcharlie.com/spotifyr/): Empaqueta la API de Spotify para bajar datos.
+
+- [rtweet](https://docs.ropensci.org/rtweet/): Permite interactuar con la API de Twitter.
+
+- [academictwitteR](https://github.com/cjbarrie/academictwitteR): Acceso a la APIv2 de Twitter para su producto académico.
+
+
+---
+
+## Wikipedia
+
+El software sobre el que está montada Wikipedia ---[MediaWiki](https://en.wikipedia.org/wiki/MediaWiki#Application_programming_interface)--- cuenta con una API 
+para acceder al contenido almacenado en sus bases de datos.
+
+- MediaWiki API: [Página principal](https://www.mediawiki.org/wiki/API:Main_page)
+
+Veamos la documentación y como crear llamados en la [sandbox](https://www.mediawiki.org/wiki/Special:ApiSandbox) disponible
+
+---
+
+## Wikipedia: API
+
+Revisemos la [API de Wikipedia](https://www.mediawiki.org/wiki/API:Main_page). 
+
+- Revisión de acciones disponibles.
+  - [`Search`](https://www.mediawiki.org/wiki/API:Search): Buscar páginas.
+
+  - [`Parse`](https://www.mediawiki.org/wiki/API:Parsing_wikitext): Obtener contenido de una página.
+  
+  - [`Query`](https://www.mediawiki.org/wiki/API:Query): Obtener información de páginas.
+
+Captura de página sobre *web scraping* en español.
+
+
+---
+
+## Wikipedia: API buscar API:Search
+
+Construcción de GET para la acción [`Search`](https://www.mediawiki.org/wiki/API:Search).
+
+.font70[
+
+```r
+resp &lt;- GET('https://es.wikipedia.org/w/api.php',
+            query = list(action = 'query',
+                         list = 'search',
+                         srsearch = 'web scraping',
+                         srlimit = 5,
+                         format = 'json'),
+            add_headers('Accept-Encoding' = 'gzip'))
+
+df &lt;- content(resp, as = 'text') |&gt; 
+  jsonlite::fromJSON()
+
+df$query$search |&gt; as_tibble()
+```
+
+```
+## # A tibble: 5 × 7
+##      ns title               pageid  size wordcount snippet             timestamp
+##   &lt;int&gt; &lt;chr&gt;                &lt;int&gt; &lt;int&gt;     &lt;int&gt; &lt;chr&gt;               &lt;chr&gt;    
+## 1     0 Web scraping       5544299 11174      1454 "&lt;span class=\"sea… 2022-05-…
+## 2     0 Screen scraping    1194524  1116       153 "casos, es al cont… 2019-07-…
+## 3     0 Scrapy             9214341  2195       142 "por Scrapinghub L… 2021-10-…
+## 4     0 HtmlUnit           4481985  3644       309 "páginas &lt;span cla… 2019-08-…
+## 5     0 WSO2 Mashup Server 4721686  8713       894 "sintaxis es idént… 2021-12-…
+```
+]
+
+
+---
+
+## Wikipedia: API contenido API:Parse 1
+
+Obtención del contenido de página. GET para la acción [`Parse`](https://www.mediawiki.org/wiki/API:Parsing_wikitext).
+
+
+```r
+resp &lt;- GET('https://es.wikipedia.org/w/api.php',
+            query = list(action = 'parse',
+                         page = 'Web scraping', # contenido de título de página
+                         prop = 'text', # html de retorno
+                         format = 'json'),
+            add_headers('Accept-Encoding' = 'gzip'))
+
+df &lt;- content(resp, as = 'text') |&gt; jsonlite::fromJSON()
+
+str(df, 2)
+```
+
+```
+## List of 1
+##  $ parse:List of 3
+##   ..$ title : chr "Web scraping"
+##   ..$ pageid: int 5544299
+##   ..$ text  :List of 1
+```
+
+
+---
+
+## Wikipedia: API contenido API:Parse 2
+
+El texto de contenido
+
+.font40[
+
+```r
+df$parse$text$`*` |&gt; 
+  read_html() |&gt; html_text() |&gt; 
+  cat()
+```
+
+```
+## Web scraping o raspado web, es una técnica utilizada mediante programas de software para extraer información de sitios web.[1]​ Usualmente, estos programas simulan la navegación de un humano en la World Wide Web ya sea utilizando el protocolo HTTP manualmente, o incrustando un navegador en una aplicación.
+## El web scraping está muy relacionado con la indexación de la web, la cual indexa la información de la web utilizando un robot y es una técnica universal adoptada por la mayoría de los motores de búsqueda. Sin embargo, el web scraping se enfoca más en la transformación de datos sin estructura en la web (como el formato HTML) en datos estructurados que pueden ser almacenados y analizados en una base de datos central, en una hoja de cálculo o en alguna otra fuente de almacenamiento. Alguno de los usos del web scraping son la comparación de precios en tiendas, la monitorización de datos relacionados con el clima de cierta región, la detección de cambios en sitios webs y la integración de datos en sitios webs. También es utilizado para obtener información relevante de un sitio a través de los rich snippets. 
+## En los últimos años el web scraping se ha convertido en una técnica muy utilizada dentro del sector del posicionamiento web gracias a su capacidad de generar grandes cantidades de datos para crear contenidos de calidad.[2]​
+## 
+## Índice
+## 1 Técnicas
+## 2 Cuestiones legales
+## 3 Medidas para detener a los scrapers
+## 4 Beneficios
+## 5 Herramientas notables
+## 6 Véase también
+## 7 Referencias
+## 
+## 
+## Técnicas[editar]
+## Web scraping es el proceso de recopilar información de forma automática de la Web. Es un campo con desarrollos activos, compartiendo un propósito en común con la visión de la Web semántica. Utiliza soluciones prácticas basadas en tecnologías existentes que son comúnmente ad hoc. Existen distintos niveles de automatización que las existentes tecnologías de Web Scraping pueden brindar:
+## 
+## «Copiar y pegar» humano: algunas veces incluso las mejores técnicas de web scraping no pueden reemplazar el examen manual de un humano, y a veces esta puede ser la única vía de solución cuando el sitio que tenemos en mente pone ciertas barreras para prevenir que se creen softwares para realizar tareas automáticas en este.
+## Uso de expresiones regulares: una posible vía para extraer información de páginas webs pueden ser las expresiones regulares, aunque comúnmente no se recomienda utilizarlas para parsear el formato HTML.
+## Protocolo HTTP: páginas webs estáticas y dinámicas pueden ser obtenidas haciendo peticiones HTTP al servidor remoto utilizando sockets, etc.
+## Algoritmos de minería de datos: muchos sitios webs tienen grandes colecciones de páginas generadas dinámicamente a partir de una base de datos. Datos de la misma categoría aparecen usualmente en páginas similares mediante un script o una plantilla. En la minería de datos, un programa detecta estas plantillas en un contexto específico y extrae su contenido.
+## Parsers de HTML: Algunos lenguajes, como XQuery y HTQL pueden ser utilizados para parsear documentos, recuperar y transformar el contenido de documentos HTML.
+## Aplicaciones para web scraping: existen muchas aplicaciones disponibles que pueden ser utilizadas para personalizar soluciones de Web Scraping. Estas aplicaciones podrían reconocer automáticamente la estructura de cierta página o brindar una interfaz al usuario donde este pudiera seleccionar los campos que son de interés dentro del documento. De esta forma no es necesario escribir manualmente código para realizar estas tareas.
+## Reconocimiento de información semántica: las páginas que son analizadas podrían incluir metadatos o cierta información semántica como anotaciones o comentarios, los cuales pueden ser usados comúnmente. Si estas anotaciones están en las mismas páginas, como sucede con los microformatos, estas podrían ser de utilidad cuando parseamos el DOM del documento. En otro caso, las anotaciones, organizadas en una capa semántica, son almacenadas y manejadas de forma separada desde otras páginas, por lo que los scrapers pueden recuperar estos esquemas y las instrucciones desde esta capa antes de analizar los documentos.[3]​Cuestiones legales[editar]
+## El web scraping pudiera ir en contra de los términos de uso de algunos sitios webs. El cumplimiento de estos términos no está totalmente claro.[4]​ Mientras que la duplicación de expresiones originales puede ser en muchos casos ilegal, en Estados Unidos la corte dictó en el caso Feist Publications v. Rural Telephone Service que la duplicación de hechos es permitida. Las cortes de Estados Unidos en ciertas ocasiones han reconocido que ciertos usos de los scrapers no deberían estar permitidos. Podría considerarse una computadora como una propiedad personal, y de esta forma el scraper estaría entrando sin autorización en esta propiedad. En el caso más conocido, eBay vs Bidder's Edge, la segunda empresa tuvo que parar de realizar peticiones automáticas al sitio de eBay. En este caso, Bidder's Edge pujaba automáticamente por ciertos productos en este sitio.
+## Uno de las principales pruebas de scraping involucró a American Airlines y a una empresa llamada FareChase. American Airlines ganó esta batalla, haciendo que FareChase parara de vender un software que le permitía a los usuarios comparar tarifas en línea si el sitio de American Airlines era incluido. La aerolínea dijo que las búsquedas de FareChase entraban sin autorización en los servidores cuando recopilaban la información públicamente disponible.
+## Aunque las decisiones actualmente tomadas no son uniformes, es difícil ignorar que un patrón está emergiendo, en el cual podemos ver que las cortes están preparándose para proteger el contenido propietario en sitios webs comerciales, previendo de esta forma que este sea utilizado sin el consentimiento de los propietarios de los sitios. Sin embargo, el grado de protección de estos contenidos aún no está establecido, y dependerá del tipo de acceso realizado por los scrapers, de la cantidad de información recopilada y del grado en el que afecten estos factores al propietario del sitio web.
+## 
+## Medidas para detener a los scrapers[editar]
+## El administrador de un sitio web puede utilizar varias técnicas para detener o disminuir los pedidos de los scrapers. Algunas técnicas incluyen:
+## 
+## Añadir entradas al fichero robots.txt. Algunos bots pueden ser detenidos de esta forma. Hay personas que piensan que el bot de Google puede ser detenido así, cosa que el propio buscador ha negado.
+## Bloquear la dirección IP. Esto también bloqueará todos los accesos desde esa misma IP, por lo que los usuarios no podrán navegar por el sitio web si acceden desde esta.
+## Deshabilitar cualquier interfaz de programación de aplicaciones que el sitio web pudiera estar brindando.
+## Los bots o scrapers algunas veces declaran quienes son, y gracias a esto pueden ser bloqueados. «Googlebot» es un ejemplo. Algunos scrapers no hacen lo que el bot de G., para que no se pueda distinguir entre un navegador común y ellos.
+## Monitorear el exceso de tráfico proveniente de cierta IP.
+## Añadir un captcha u otro sistema de verificación manual al sitio web. No se garantiza el completo bloqueo de los scrapers, pero mediante esta técnica se dificulta el acceso de los mismos a los sitios webs.
+## Servicios comerciales antibots: algunas empresas ofrecen servicios antibots y antiscraping.[5]​
+## Incrementar el uso de JavaScript y AJAX. De esta forma es más difícil para los scrapers simular las peticiones como si fueran un navegador común, aunque hará que usuarios legítimos dejen de poder ver la página.La mayoría de estos métodos suponen una merma importante en la usabilidad del sitio web en cuestión y los beneficios pueden ser muy puntuales.
+## 
+## Beneficios[editar]
+## Pese al planteamiento negativo de ciertos sectores, el rastreo automático y scraping son muy importantes para mantener la historia de Internet. Las iniciativas de archivado web se basan mayoritariamente en esta técnica.
+## 
+## Herramientas notables[editar]
+## 
+## UIPath
+## Apache Camel
+## Automation Anywhere
+## Convertigo
+## cURL
+## Data Toolbar
+## Firebug
+## Greasemonkey
+## HtmlUnit
+## Node.js
+## HTTrack
+## iMacros
+## Aptana Jaxer
+## nokogiri
+## watir
+## Wget
+## WSO2 Mashup Server
+## HtmlAgilityPack
+## BeautifulSoup
+## Scrapy
+## Véase también[editar]
+## Minería de datos
+## Mashup (aplicación web híbrida)
+## Spamdexing
+## Corpus lingüístico
+## Araña web
+## Metadato
+## Screen scraping.Referencias[editar]
+## ↑  Martí, Marq (8 de abril de 2016). «¿Qué es el Web scraping? Introducción y herramientas» (html). Sitelab España. Archivado desde el original el 29 de julio de 2017. Consultado el 30 de marzo de 2020. «El web scraping es una técnica que sirve para extraer información de páginas web de forma automatizada. Si traducimos del inglés su significado vendría a significar algo así como “escarbar una web”.»  
+## 
+## ↑  Martí, Marq (8 de abril de 2016). «¿Qué es el Web scraping? Introducción y herramientas» (html). Sitelab España. Archivado desde el original el 29 de julio de 2017. Consultado el 30 de marzo de 2020. «Para controlar la imagen y la visibilidad de nuestra marca en internet: a través de un scrapeo podemos automatizar la posición por la que varios artículos de nuestra web se posicionan en Google o, por ejemplo, controlar la presencia del nombre de nuestra marca en determinados foros. Ejemplo: rastrear la posición en Google de todas las entradas de nuestro blog.»  
+## 
+## ↑ http://www.gooseeker.com/en/node/knowledgebase/freeformat
+## 
+## ↑ https://web.archive.org/web/20020308222536/http://www.chillingeffects.org/linking/faq.cgi#QID596
+## 
+## ↑ https://s3.us-west-2.amazonaws.com/research-papers-mynk/Breaking-Fraud-And-Bot-Detection-Solutions.pdf
+## 
+## 
+## .mw-parser-output .mw-authority-control{margin-top:1.5em}.mw-parser-output .mw-authority-control .navbox hr:last-child{display:none}.mw-parser-output .mw-authority-control .navbox+.mw-mf-linked-projects{display:none}.mw-parser-output .mw-authority-control .mw-mf-linked-projects{display:flex;padding:0.5em;border:1px solid #c8ccd1;background-color:#eaecf0;color:#222222}.mw-parser-output .mw-authority-control .mw-mf-linked-projects ul li{margin-bottom:0}Control de autoridades
+## Proyectos Wikimedia
+##  Datos: Q665452
+##  Datos: Q665452
+```
+]
+
+
+---
+
+## Wikipedia: API información API:Query 1
+
+Información de varias páginas. GET para la acción [`Query`](https://www.mediawiki.org/wiki/API:Query).
+
+
+```r
+resp &lt;- GET('https://es.wikipedia.org/w/api.php',
+            query = list(action = 'query',
+                         titles = 'Web scraping|Python', # Varios títulos a la ves.
+                         prop = 'info|categories|iwlinks', # Información a obtener.
+                         format = 'json'),
+            add_headers('Accept-Encoding' = 'gzip'))
+
+df &lt;- content(resp, as = 'text') |&gt; jsonlite::fromJSON()
+
+str(df, 3)
+```
+
+```
+## List of 2
+##  $ continue:List of 2
+##   ..$ clcontinue: chr "2330|Wikipedia:Artículos_buenos_en_la_Wikipedia_en_árabe"
+##   ..$ continue  : chr "||info|iwlinks"
+##  $ query   :List of 1
+##   ..$ pages:List of 2
+##   .. ..$ 2330   :List of 12
+##   .. ..$ 5544299:List of 11
+```
+
+
+---
+
+## Wikipedia: API información API:Query 2
+
+.font70[
+
+```r
+df$query$pages |&gt; 
+  enframe() |&gt; unnest_wider(value)
+```
+
+```
+## # A tibble: 2 × 13
+##   name     pageid    ns title        contentmodel pagelanguage pagelanguagehtml…
+##   &lt;chr&gt;     &lt;int&gt; &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;chr&gt;        &lt;chr&gt;            
+## 1 2330       2330     0 Python       wikitext     es           es               
+## 2 5544299 5544299     0 Web scraping wikitext     es           es               
+## # … with 6 more variables: pagelanguagedir &lt;chr&gt;, touched &lt;chr&gt;,
+## #   lastrevid &lt;int&gt;, length &lt;int&gt;, categories &lt;list&gt;, iwlinks &lt;list&gt;
+```
+]
+
+
+---
+
+## Wikipedia: usando WikipediR 1
+
+Lo mismo, pero más fácil.
+
+.pull-left.font70[
+- `page_info`: información sobre una página específica.
+
+- `page_content`: contenido de una página específica.
+
+- `page_links`: links disponibles en una página específica.
+
+
+
+```r
+library(WikipediR)
+
+info_wiki &lt;- page_info(
+  language = 'es', 
+  project = 'wikipedia', 
+  page = 'Web_scraping|Python') 
+```
+]
+
+.pull-right.font70[
+
+```r
+str(info_wiki, 3)
+```
+
+```
+## List of 2
+##  $ batchcomplete: chr ""
+##  $ query        :List of 2
+##   ..$ normalized:List of 1
+##   .. ..$ :List of 2
+##   ..$ pages     :List of 2
+##   .. ..$ 2330   :List of 17
+##   .. ..$ 5544299:List of 17
+##  - attr(*, "class")= chr "pageinfo"
+```
+]
+
+
+---
+
+## Wikipedia: usando WikipediR 2
+
+Resultado de la búsqueda.
+
+.font70[
+
+```r
+info_wiki$query$pages |&gt; 
+  enframe() |&gt; unnest_wider(value)
+```
+
+```
+## # A tibble: 2 × 18
+##   name     pageid    ns title        contentmodel pagelanguage pagelanguagehtml…
+##   &lt;chr&gt;     &lt;int&gt; &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;chr&gt;        &lt;chr&gt;            
+## 1 2330       2330     0 Python       wikitext     es           es               
+## 2 5544299 5544299     0 Web scraping wikitext     es           es               
+## # … with 11 more variables: pagelanguagedir &lt;chr&gt;, touched &lt;chr&gt;,
+## #   lastrevid &lt;int&gt;, length &lt;int&gt;, protection &lt;lgl&gt;, restrictiontypes &lt;list&gt;,
+## #   talkid &lt;int&gt;, fullurl &lt;chr&gt;, editurl &lt;chr&gt;, canonicalurl &lt;chr&gt;,
+## #   displaytitle &lt;chr&gt;
+```
+]
+
+
+---
+
+## Wikipedia: usando WikipediR 3
+
+Captura de página sobre *web scraping* en español.
+
+.font70[
+
+```r
+cont_wiki &lt;-  page_content(language = 'es', 
+                           project = 'wikipedia', 
+                           page_name = 'Web_scraping')
+
+str(cont_wiki) # Una lisa parse con 4 elementos dentro
+```
+
+```
+## List of 1
+##  $ parse:List of 4
+##   ..$ title : chr "Web scraping"
+##   ..$ pageid: int 5544299
+##   ..$ revid : int 143659932
+##   ..$ text  :List of 1
+##   .. ..$ *: chr "&lt;div class=\"mw-parser-output\"&gt;&lt;p&gt;&lt;i&gt;&lt;b&gt;Web scraping&lt;/b&gt;&lt;/i&gt; o raspado web, es una técnica utilizada mediante "| __truncated__
+##  - attr(*, "class")= chr "pcontent"
+```
+]
+
+
+---
+
+## Wikipedia: usando WikipediR 4
+
+Texto sobre Web scraping.
+
+.font40[
+
+```r
+cont_wiki$parse$text$`*` |&gt; # Texto del requerimiento
+  read_html() |&gt; html_text() |&gt; 
+  cat()
+```
+
+```
+## Web scraping o raspado web, es una técnica utilizada mediante programas de software para extraer información de sitios web.[1]​ Usualmente, estos programas simulan la navegación de un humano en la World Wide Web ya sea utilizando el protocolo HTTP manualmente, o incrustando un navegador en una aplicación.
+## El web scraping está muy relacionado con la indexación de la web, la cual indexa la información de la web utilizando un robot y es una técnica universal adoptada por la mayoría de los motores de búsqueda. Sin embargo, el web scraping se enfoca más en la transformación de datos sin estructura en la web (como el formato HTML) en datos estructurados que pueden ser almacenados y analizados en una base de datos central, en una hoja de cálculo o en alguna otra fuente de almacenamiento. Alguno de los usos del web scraping son la comparación de precios en tiendas, la monitorización de datos relacionados con el clima de cierta región, la detección de cambios en sitios webs y la integración de datos en sitios webs. También es utilizado para obtener información relevante de un sitio a través de los rich snippets. 
+## En los últimos años el web scraping se ha convertido en una técnica muy utilizada dentro del sector del posicionamiento web gracias a su capacidad de generar grandes cantidades de datos para crear contenidos de calidad.[2]​
+## 
+## Índice
+## 1 Técnicas
+## 2 Cuestiones legales
+## 3 Medidas para detener a los scrapers
+## 4 Beneficios
+## 5 Herramientas notables
+## 6 Véase también
+## 7 Referencias
+## 
+## 
+## Técnicas[editar]
+## Web scraping es el proceso de recopilar información de forma automática de la Web. Es un campo con desarrollos activos, compartiendo un propósito en común con la visión de la Web semántica. Utiliza soluciones prácticas basadas en tecnologías existentes que son comúnmente ad hoc. Existen distintos niveles de automatización que las existentes tecnologías de Web Scraping pueden brindar:
+## 
+## «Copiar y pegar» humano: algunas veces incluso las mejores técnicas de web scraping no pueden reemplazar el examen manual de un humano, y a veces esta puede ser la única vía de solución cuando el sitio que tenemos en mente pone ciertas barreras para prevenir que se creen softwares para realizar tareas automáticas en este.
+## Uso de expresiones regulares: una posible vía para extraer información de páginas webs pueden ser las expresiones regulares, aunque comúnmente no se recomienda utilizarlas para parsear el formato HTML.
+## Protocolo HTTP: páginas webs estáticas y dinámicas pueden ser obtenidas haciendo peticiones HTTP al servidor remoto utilizando sockets, etc.
+## Algoritmos de minería de datos: muchos sitios webs tienen grandes colecciones de páginas generadas dinámicamente a partir de una base de datos. Datos de la misma categoría aparecen usualmente en páginas similares mediante un script o una plantilla. En la minería de datos, un programa detecta estas plantillas en un contexto específico y extrae su contenido.
+## Parsers de HTML: Algunos lenguajes, como XQuery y HTQL pueden ser utilizados para parsear documentos, recuperar y transformar el contenido de documentos HTML.
+## Aplicaciones para web scraping: existen muchas aplicaciones disponibles que pueden ser utilizadas para personalizar soluciones de Web Scraping. Estas aplicaciones podrían reconocer automáticamente la estructura de cierta página o brindar una interfaz al usuario donde este pudiera seleccionar los campos que son de interés dentro del documento. De esta forma no es necesario escribir manualmente código para realizar estas tareas.
+## Reconocimiento de información semántica: las páginas que son analizadas podrían incluir metadatos o cierta información semántica como anotaciones o comentarios, los cuales pueden ser usados comúnmente. Si estas anotaciones están en las mismas páginas, como sucede con los microformatos, estas podrían ser de utilidad cuando parseamos el DOM del documento. En otro caso, las anotaciones, organizadas en una capa semántica, son almacenadas y manejadas de forma separada desde otras páginas, por lo que los scrapers pueden recuperar estos esquemas y las instrucciones desde esta capa antes de analizar los documentos.[3]​Cuestiones legales[editar]
+## El web scraping pudiera ir en contra de los términos de uso de algunos sitios webs. El cumplimiento de estos términos no está totalmente claro.[4]​ Mientras que la duplicación de expresiones originales puede ser en muchos casos ilegal, en Estados Unidos la corte dictó en el caso Feist Publications v. Rural Telephone Service que la duplicación de hechos es permitida. Las cortes de Estados Unidos en ciertas ocasiones han reconocido que ciertos usos de los scrapers no deberían estar permitidos. Podría considerarse una computadora como una propiedad personal, y de esta forma el scraper estaría entrando sin autorización en esta propiedad. En el caso más conocido, eBay vs Bidder's Edge, la segunda empresa tuvo que parar de realizar peticiones automáticas al sitio de eBay. En este caso, Bidder's Edge pujaba automáticamente por ciertos productos en este sitio.
+## Uno de las principales pruebas de scraping involucró a American Airlines y a una empresa llamada FareChase. American Airlines ganó esta batalla, haciendo que FareChase parara de vender un software que le permitía a los usuarios comparar tarifas en línea si el sitio de American Airlines era incluido. La aerolínea dijo que las búsquedas de FareChase entraban sin autorización en los servidores cuando recopilaban la información públicamente disponible.
+## Aunque las decisiones actualmente tomadas no son uniformes, es difícil ignorar que un patrón está emergiendo, en el cual podemos ver que las cortes están preparándose para proteger el contenido propietario en sitios webs comerciales, previendo de esta forma que este sea utilizado sin el consentimiento de los propietarios de los sitios. Sin embargo, el grado de protección de estos contenidos aún no está establecido, y dependerá del tipo de acceso realizado por los scrapers, de la cantidad de información recopilada y del grado en el que afecten estos factores al propietario del sitio web.
+## 
+## Medidas para detener a los scrapers[editar]
+## El administrador de un sitio web puede utilizar varias técnicas para detener o disminuir los pedidos de los scrapers. Algunas técnicas incluyen:
+## 
+## Añadir entradas al fichero robots.txt. Algunos bots pueden ser detenidos de esta forma. Hay personas que piensan que el bot de Google puede ser detenido así, cosa que el propio buscador ha negado.
+## Bloquear la dirección IP. Esto también bloqueará todos los accesos desde esa misma IP, por lo que los usuarios no podrán navegar por el sitio web si acceden desde esta.
+## Deshabilitar cualquier interfaz de programación de aplicaciones que el sitio web pudiera estar brindando.
+## Los bots o scrapers algunas veces declaran quienes son, y gracias a esto pueden ser bloqueados. «Googlebot» es un ejemplo. Algunos scrapers no hacen lo que el bot de G., para que no se pueda distinguir entre un navegador común y ellos.
+## Monitorear el exceso de tráfico proveniente de cierta IP.
+## Añadir un captcha u otro sistema de verificación manual al sitio web. No se garantiza el completo bloqueo de los scrapers, pero mediante esta técnica se dificulta el acceso de los mismos a los sitios webs.
+## Servicios comerciales antibots: algunas empresas ofrecen servicios antibots y antiscraping.[5]​
+## Incrementar el uso de JavaScript y AJAX. De esta forma es más difícil para los scrapers simular las peticiones como si fueran un navegador común, aunque hará que usuarios legítimos dejen de poder ver la página.La mayoría de estos métodos suponen una merma importante en la usabilidad del sitio web en cuestión y los beneficios pueden ser muy puntuales.
+## 
+## Beneficios[editar]
+## Pese al planteamiento negativo de ciertos sectores, el rastreo automático y scraping son muy importantes para mantener la historia de Internet. Las iniciativas de archivado web se basan mayoritariamente en esta técnica.
+## 
+## Herramientas notables[editar]
+## 
+## UIPath
+## Apache Camel
+## Automation Anywhere
+## Convertigo
+## cURL
+## Data Toolbar
+## Firebug
+## Greasemonkey
+## HtmlUnit
+## Node.js
+## HTTrack
+## iMacros
+## Aptana Jaxer
+## nokogiri
+## watir
+## Wget
+## WSO2 Mashup Server
+## HtmlAgilityPack
+## BeautifulSoup
+## Scrapy
+## Véase también[editar]
+## Minería de datos
+## Mashup (aplicación web híbrida)
+## Spamdexing
+## Corpus lingüístico
+## Araña web
+## Metadato
+## Screen scraping.Referencias[editar]
+## ↑  Martí, Marq (8 de abril de 2016). «¿Qué es el Web scraping? Introducción y herramientas» (html). Sitelab España. Archivado desde el original el 29 de julio de 2017. Consultado el 30 de marzo de 2020. «El web scraping es una técnica que sirve para extraer información de páginas web de forma automatizada. Si traducimos del inglés su significado vendría a significar algo así como “escarbar una web”.»  
+## 
+## ↑  Martí, Marq (8 de abril de 2016). «¿Qué es el Web scraping? Introducción y herramientas» (html). Sitelab España. Archivado desde el original el 29 de julio de 2017. Consultado el 30 de marzo de 2020. «Para controlar la imagen y la visibilidad de nuestra marca en internet: a través de un scrapeo podemos automatizar la posición por la que varios artículos de nuestra web se posicionan en Google o, por ejemplo, controlar la presencia del nombre de nuestra marca en determinados foros. Ejemplo: rastrear la posición en Google de todas las entradas de nuestro blog.»  
+## 
+## ↑ http://www.gooseeker.com/en/node/knowledgebase/freeformat
+## 
+## ↑ https://web.archive.org/web/20020308222536/http://www.chillingeffects.org/linking/faq.cgi#QID596
+## 
+## ↑ https://s3.us-west-2.amazonaws.com/research-papers-mynk/Breaking-Fraud-And-Bot-Detection-Solutions.pdf
+## 
+## 
+## .mw-parser-output .mw-authority-control{margin-top:1.5em}.mw-parser-output .mw-authority-control .navbox hr:last-child{display:none}.mw-parser-output .mw-authority-control .navbox+.mw-mf-linked-projects{display:none}.mw-parser-output .mw-authority-control .mw-mf-linked-projects{display:flex;padding:0.5em;border:1px solid #c8ccd1;background-color:#eaecf0;color:#222222}.mw-parser-output .mw-authority-control .mw-mf-linked-projects ul li{margin-bottom:0}Control de autoridades
+## Proyectos Wikimedia
+##  Datos: Q665452
+##  Datos: Q665452
+```
+]
+
+
+---
+
+## Spotify
+
+.pull-left[
+Uno de los mayores proveedores de servicio de música del mundo. 
+Tiene disponible una API para la integración de su servicio con otras aplicaciones. Podemos usarla para obtener información
+
+- Spotify API: [quick start](https://developer.spotify.com/documentation/web-api/quick-start/)
+
+- Requiere tener cuenta en Spotify y [crear un token](https://developer.spotify.com/dashboard/).
+]
+
+.pull-right[
+![Spotify dashboard](./class_9_files/spotify_dashboard.jpeg)
+]
+
+
+---
+
+## Spotify: API 1
+
+Revisemos la [API de Spotify](https://developer.spotify.com/documentation/web-api/). Acciones de interés.
+
+- [`Search`](https://developer.spotify.com/documentation/web-api/reference/#/operations/search): Buscar.
+  
+- [`get-playlist`](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist): Datos sobre una lista.
+  
+- [`get-several-audio-features`](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-audio-features): Información psico--acústica de canciones.
+
+
+
+---
+
+## Spotify: API 2
+
+Búsqueda de género metal usando la API directamente. Pedí el token de acceso usando `spotifyr`.
+
+.font70[
+
+```r
+s_met &lt;- GET('https://api.spotify.com/v1/search',
+             query = list(q = 'genre:metal', 
+                          market = 'CL', 
+                          type = 'artist', 
+                          limit = 8),
+             accept_json(),
+             add_headers(Authorization = str_glue("Bearer {spotifyr::get_spotify_access_token()}")))
+
+df_met &lt;- s_met |&gt; content('text') |&gt; 
+  jsonlite::fromJSON()
+
+df_met$artists$items |&gt; 
+  as_tibble() |&gt; unpack(followers, names_repair = 'minimal') |&gt;
+  select(id, name, popularity, total)
+```
+
+```
+## # A tibble: 8 × 4
+##   id                     name                  popularity    total
+##   &lt;chr&gt;                  &lt;chr&gt;                      &lt;int&gt;    &lt;int&gt;
+## 1 2ye2Wgw4gimLv2eAKyk1NB Metallica                     79 21532309
+## 2 5eAWCfyUhZtHHtBdNk56l1 System Of A Down              76  8292787
+## 3 3qm84nBOXUEQ2vnTfUTTFC Guns N' Roses                 77 24791068
+## 4 0L8ExT028jH3ddEcZwqJJ5 Red Hot Chili Peppers         81 18236810
+## 5 6XyY86QOPPrYVGvF9ch6wz Linkin Park                   81 21977271
+## 6 05fG473iIaoy82BF1aGhL8 Slipknot                      76  8524614
+## 7 58lV9VcRSjABbAbfWS6skp Bon Jovi                      76 10858164
+## 8 6wWVKhxIU2cEi0K81v7HvP Rammstein                     79  7287759
+```
+]
+
+
+---
+
+## Spotify: spotifyr 1
+
+Envuelve los llamados a la API de Spotify en funciones de R.
+Puede verse su [referencia](https://www.rcharlie.com/spotifyr/reference/index.html)
+
+Búsqueda análoga a la anterior:
+
+.font70[
+
+```r
+library(spotifyr)
+
+df_met &lt;- get_genre_artists('metal', limit = 8)
+df_met |&gt; 
+  select(id, name, popularity, followers.total)
+```
+
+```
+## # A tibble: 8 × 4
+##   id                     name                    popularity followers.total
+##   &lt;chr&gt;                  &lt;chr&gt;                        &lt;int&gt;           &lt;int&gt;
+## 1 6XyY86QOPPrYVGvF9ch6wz Linkin Park                     81        21977271
+## 2 2ye2Wgw4gimLv2eAKyk1NB Metallica                       79        21532309
+## 3 0L8ExT028jH3ddEcZwqJJ5 Red Hot Chili Peppers           81        18236810
+## 4 05fG473iIaoy82BF1aGhL8 Slipknot                        76         8524614
+## 5 5t28BP42x2axFnqOOMg3CM Five Finger Death Punch         73         5531932
+## 6 6Ghvu1VvMGScGpOUJBAHNH Deftones                        72         2675946
+## 7 2xiIXseIJcq3nG7C8fHeBj Three Days Grace                73         5252431
+## 8 5eAWCfyUhZtHHtBdNk56l1 System Of A Down                76         8292787
+```
+]
+
+
+---
+
+## Spotify: spotifyr 2 
+
+Cambiamos los criterios de búsqueda para encontrar podcasts.
+
+.font70[
+
+```r
+df_pod &lt;- search_spotify(q = 'podcast', type = 'show', market = 'CL', limit = 10)
+df_pod |&gt; 
+  select(id, name, total_episodes, description)
+```
+
+```
+## # A tibble: 10 × 4
+##    id                     name                        total_episodes description
+##    &lt;chr&gt;                  &lt;chr&gt;                                &lt;int&gt; &lt;chr&gt;      
+##  1 2nAf8IDQG1sPEwAKdG2DyM Despertando Podcast                    556 ¿Qué pasar…
+##  2 0sGGLIDnnijRPLef7InllD Entiende Tu Mente                      238 Seguro que…
+##  3 1NVpfucRZLNVQmPp1MNlxc Vivi Pedraglio | Podcast               129 Vivi is an…
+##  4 6S7DckQZ7RzFVbvUF8rY1k Presentaciones Felipe Avel…             20 Distintas …
+##  5 1w9Me4TrRiDOuK3OsJ2VAW Durmiendo Podcast                      298 ¡Despídete…
+##  6 3X1Gb5GOl3Xv3VilVRhB0t Weona Que Creici                       144 Que los ho…
+##  7 6f9fN5uEZOjAbl7csWyb0P Emisor Podcasting. - Esto …            100 Marco y Ma…
+##  8 17dk0hYDmVq7EzGXC8y4u6 Filosofía, Psicología, His…            191 Relatos br…
+##  9 1sOuGn3YfjXW2eBmVEuyRW ELO PODCAST                            341 Me gusta c…
+## 10 4mWFWpLVAjn7YyLoo0uqTe Weona Full Sí                           66 Coni y Nac…
+```
+]
+
+---
+
+## Spotify: spotifyr listas
+
+Exploremos las caractarísticas de canciones gracias a la lista 
+[top 50 canciones en Chile](https://open.spotify.com/playlist/37i9dQZEVXbL0GavIqMTeb). 
+
+.font70[
+
+```r
+df_top &lt;- get_playlist('37i9dQZEVXbL0GavIqMTeb') # ID de la lista.
+df_top_track &lt;- df_top$tracks$items |&gt; as_tibble() |&gt; distinct()
+
+suppressMessages(
+  # Seleccionar y limpiar solo alguna de las variables disponibles
+  df_top_track_sel &lt;- df_top_track |&gt; 
+    mutate(track.id, track.name, track.popularity, track.album.release_date, 
+           name = map(track.album.artists, 'name'),
+           .keep = 'none') |&gt; 
+    unnest_wider(name, names_repair = 'unique')
+)
+
+df_top_track_sel |&gt; head()
+```
+
+```
+## # A tibble: 6 × 7
+##   track.id        track.name track.popularity track.album.rel… ...5  ...6  ...7 
+##   &lt;chr&gt;           &lt;chr&gt;                 &lt;int&gt; &lt;chr&gt;            &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
+## 1 6wtZPYBIXUvCpX… ULTRA SOL…               79 2022-06-16       Poli… Pail… Feid 
+## 2 6Sq7ltF9Qa7SNF… Me Porto …               99 2022-05-06       Bad … &lt;NA&gt;  &lt;NA&gt; 
+## 3 5Eax0qFko2dh7R… Efecto                   95 2022-05-06       Bad … &lt;NA&gt;  &lt;NA&gt; 
+## 4 3k3NWokhRRkEPh… Ojitos Li…               98 2022-05-06       Bad … &lt;NA&gt;  &lt;NA&gt; 
+## 5 6Xom58OOXk2SoU… Moscow Mu…               97 2022-05-06       Bad … &lt;NA&gt;  &lt;NA&gt; 
+## 6 40w8JmvwYUP2HU… Me Arrepe…               81 2022-03-30       Ak4:… Pail… Cris…
+```
+]
+
+
+---
+
+## Spotify: spotifyr canciones 1
+
+Con el `id` de las canciones, podemos obtener características musicales de las canciones.
+
+.font70[
+
+```r
+df_track_af &lt;- get_track_audio_features(df_top_track_sel$track.id)
+
+head(df_track_af)
+```
+
+```
+## # A tibble: 6 × 18
+##   danceability energy   key loudness  mode speechiness acousticness
+##          &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;    &lt;dbl&gt; &lt;int&gt;       &lt;dbl&gt;        &lt;dbl&gt;
+## 1        0.909  0.824     1    -4.63     1      0.0797       0.0777
+## 2        0.911  0.712     1    -5.11     0      0.0817       0.0901
+## 3        0.801  0.475     7    -8.80     0      0.0516       0.141 
+## 4        0.647  0.686     3    -5.74     0      0.0413       0.08  
+## 5        0.804  0.674     5    -5.45     0      0.0333       0.294 
+## 6        0.861  0.786     0    -4.93     1      0.164        0.289 
+## # … with 11 more variables: instrumentalness &lt;dbl&gt;, liveness &lt;dbl&gt;,
+## #   valence &lt;dbl&gt;, tempo &lt;dbl&gt;, type &lt;chr&gt;, id &lt;chr&gt;, uri &lt;chr&gt;,
+## #   track_href &lt;chr&gt;, analysis_url &lt;chr&gt;, duration_ms &lt;int&gt;,
+## #   time_signature &lt;int&gt;
+```
+]
+
+
+---
+
+## Spotify: spotifyr canciones 2
+
+Gráfico con la posición relativa de las canciones según 5 características.
+
+.pull-left.font70[
+
+```r
+df_top_track_sel &lt;- bind_cols(df_top_track_sel, df_track_af)
+
+gg &lt;- df_top_track_sel |&gt; 
+  mutate(pos = row_number()) |&gt;
+  pivot_longer(cols = c(danceability, energy, speechiness, acousticness, liveness, liveness),
+               names_to = 'variable', values_to = 'valor') |&gt; 
+  ggplot(aes(x = variable, y = valor, colour = track.popularity)) +
+  geom_point(aes(size = rev(pos)),
+             alpha = 0.5,
+             show.legend = FALSE) + theme_minimal() +
+  labs(title = 'Características de las 100 canciones en Chile',
+       subtitle = 'Lista Top 50 — Chile, Spotify', x = NULL)
+```
+]
+
+.pull-right.font70[
+
+```r
+gg
+```
+
+&lt;img src="class_9_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+## Twitter: API
+
+La APIv2 de Twitter se puede consultar [acá](https://developer.twitter.com/en/docs/twitter-api). 
+
+- Existen distintos [niveles de acceso][tw_niveles] a la API.
+
+  - *Essencial* y *Elevated* no permiten el acceso a [search][tw_s] y [count][tw_c]. Pueden acceder al [stream][tw_st].
+  
+  - Se puede pedir acceso a Twitter Académico.
+
+  - Packetes: [`rtweet`](https://docs.ropensci.org/rtweet) [`RTwitterV2`](https://github.com/MaelKubli/RTwitterV2) [`academictwitteR`](https://github.com/cjbarrie/academictwitteR)
+
+[tw_niveles]: https://developer.twitter.com/en/docs/twitter-api/getting-started/about-twitter-api#item0
+[tw_s]: https://developer.twitter.com/en/docs/twitter-api/tweets/search/introduction
+[tw_c]: https://developer.twitter.com/en/docs/twitter-api/tweets/counts/introduction
+[tw_st]: https://developer.twitter.com/en/docs/twitter-api/tweets/filtered-stream/introduction
+
+---
+
+## Twitter: rtweet 1
+
+Instalar versión en desarrollo:
+
+```r
+install.packages("rtweet", repos = 'https://ropensci.r-universe.dev')
+```
+
+
+```r
+suppressPackageStartupMessages(library(rtweet))
+
+rtweet::auth_setup_default() # pedir credenciales
+```
+
+```
+## Using default authentication available.
+## Reading auth from '/Users/caayala/Library/Preferences/org.R-project.R/R/rtweet/default.rds'
+```
+
+
+```r
+rtweet::auth_get() # ver credenciales
+```
+
+```
+## &lt;Token&gt;
+## &lt;oauth_endpoint&gt;
+##  request:   https://api.twitter.com/oauth/request_token
+##  authorize: https://api.twitter.com/oauth/authenticate
+##  access:    https://api.twitter.com/oauth/access_token
+## &lt;oauth_app&gt; rtweet
+##   key:    6j7Ig4xzHlBr8uUJ5A4Ym0NTf
+##   secret: &lt;hidden&gt;
+## &lt;credentials&gt; oauth_token, oauth_token_secret, user_id, screen_name
+## ---
+```
+
+
+---
+
+## Twitter: rtweet 2
+
+Tweets del usuario @rstudio.
+
+.font70[
+
+```r
+tweets &lt;- rtweet::get_timeline('rstudio')
+dim(tweets)
+```
+
+```
+## [1] 100  43
+```
+
+
+```r
+tweets |&gt; 
+  select(id, created_at, text) |&gt; head()
+```
+
+```
+## # A tibble: 6 × 3
+##        id created_at          text                                              
+##     &lt;dbl&gt; &lt;dttm&gt;              &lt;chr&gt;                                             
+## 1 1.54e18 2022-06-22 14:31:51 "Want to learn how to produce elegant and inspiri…
+## 2 1.54e18 2022-06-22 12:23:04 "In their final installment of Programming Games …
+## 3 1.54e18 2022-06-21 12:03:39 "Join us now on YouTube live for our Enterprise M…
+## 4 1.54e18 2022-06-21 11:10:00 "RT @quarto_pub: Want to get started with or get …
+## 5 1.54e18 2022-06-17 15:25:49 "On R Views - Introducing @f2harrell’s new book, …
+## 6 1.54e18 2022-06-17 12:28:40 "RT @rstudio_glimpse: TinyTeX users, you can inst…
+```
+]
+
+
+---
+
+## Twitter: academictwitteR
+
+
+
+Revisar el usuario [@rstudio](https://twitter.com/rstudio).
+
+
+```r
+suppressPackageStartupMessages(library(academictwitteR))
+tuser_id &lt;- get_user_id('rstudio')
+```
+
+.font70[
+
+```r
+get_user_profile(tuser_id)
+```
+
+```
+## Processing from 1 to 1
+```
+
+```
+##   username        id protected               created_at location
+## 1  rstudio 235261861     FALSE 2011-01-07T19:13:28.000Z   Boston
+##                                                              profile_image_url
+## 1 https://pbs.twimg.com/profile_images/1273974016265486349/qghv719Z_normal.jpg
+##                      url public_metrics.followers_count
+## 1 http://t.co/sNW3mienR9                         131863
+##   public_metrics.following_count public_metrics.tweet_count
+## 1                            662                       2963
+##   public_metrics.listed_count verified
+## 1                        2234    FALSE
+##                                                                 urls    name
+## 1 0, 22, http://t.co/sNW3mienR9, http://www.rstudio.com, rstudio.com RStudio
+##                                                                                         description
+## 1 Open source and enterprise-ready professional software for data science teams using R and Python.
+```
+]
+
+
+---
+
+## Twitter: academictwitteR tweets Encuesta CEP 1
+
+Tweets de la cuanta @rstudio, análogo al uso de `rtweet`.
+
+.font70[
+
+```r
+tweets_user &lt;- academictwitteR::get_user_timeline(
+  x = tuser_id,
+  start_tweets = f_date_for_twitter(as.Date('2022-06-17')),
+  end_tweets = f_date_for_twitter(as.Date('2022-06-23')),
+  bearer_token = Sys.getenv('TWITTER_BEARER_CAA')) |&gt; 
+  as_tibble()
+```
+
+```
+## user:  235261861 
+## Total pages queried: 1 (tweets captured this page: 6).
+## This is the last page for : finishing collection.
+```
+
+```r
+tweets_user |&gt; 
+  select(id, created_at, text)
+```
+
+```
+## # A tibble: 6 × 3
+##   id                  created_at               text                             
+##   &lt;chr&gt;               &lt;chr&gt;                    &lt;chr&gt;                            
+## 1 1539677562951057408 2022-06-22T18:31:51.000Z "Want to learn how to produce el…
+## 2 1539645152238501888 2022-06-22T16:23:04.000Z "In their final installment of P…
+## 3 1539277877929054208 2022-06-21T16:03:39.000Z "Join us now on YouTube live for…
+## 4 1539264378154848256 2022-06-21T15:10:00.000Z "RT @quarto_pub: Want to get sta…
+## 5 1537879205035143168 2022-06-17T19:25:49.000Z "On R Views - Introducing @f2har…
+## 6 1537834624335851520 2022-06-17T16:28:40.000Z "RT @rstudio_glimpse: TinyTeX us…
+```
+]
+
+---
+
+## Twitter: academictwitteR tweets Encuesta CEP 2
+
+Buscar tweets de un tema específico.
+Solo para cuentas académicas.
+
+.font70[
+
+
+```r
+try(
+  get_all_tweets(
+    query = '"Encuesta CEP"',
+    start_tweets = f_date_for_twitter(as.Date('2022-06-17')),
+    end_tweets = f_date_for_twitter(as.Date('2022-06-23')),
+    bearer_token = Sys.getenv('TWITTER_BEARER_CAA')) # Error con este token.
+)
+```
+
+```
+## query:  "Encuesta CEP" 
+## Error in make_query(url = endpoint_url, params = params, bearer_token = bearer_token,  : 
+##   something went wrong. Status code: 403
+```
+]
+
+
+---
+
+## Twitter: academictwitteR tweets Encuesta CEP 3
+
+Con una cuenta académica se puede buscar en un tema específico.
+
+.font70[
+
+```r
+tweets_tema &lt;- get_all_tweets(
+  query = '"Encuesta CEP"',
+  start_tweets = f_date_for_twitter(as.Date('2022-06-17')),
+  end_tweets = f_date_for_twitter(as.Date('2022-06-23')),
+  bearer_token = Sys.getenv('TWITTER_BEARER')) |&gt; as_tibble()
+```
+
+```
+## Warning: Recommended to specify a data path in order to mitigate data loss when
+## ingesting large amounts of data.
+```
+
+```
+## Warning: Tweets will not be stored as JSONs or as a .rds file and will only be
+## available in local memory if assigned to an object.
+```
+
+```
+## query:  "Encuesta CEP" 
+## Total pages queried: 1 (tweets captured this page: 100).
+## Total tweets captured now reach 100 : finishing collection.
+```
+
+
+```r
+tweets_tema |&gt; 
+  select(id, created_at, text) |&gt; 
+  head()
+```
+
+```
+## # A tibble: 6 × 3
+##   id                  created_at               text                             
+##   &lt;chr&gt;               &lt;chr&gt;                    &lt;chr&gt;                            
+## 1 1539613492491128832 2022-06-22T14:17:15.000Z "La Cadem es la encuesta menos f…
+## 2 1539461559839506434 2022-06-22T04:13:32.000Z "RT @MauricioRojasmr: Según la e…
+## 3 1539416893391458305 2022-06-22T01:16:03.000Z "@kamiluru @DraMLCordero Compren…
+## 4 1539390533893623809 2022-06-21T23:31:18.000Z "https://t.co/CcpybKAvKW y se qu…
+## 5 1539384392442777600 2022-06-21T23:06:54.000Z "@DraMLCordero @MielExtrema Pued…
+## 6 1539325998419693575 2022-06-21T19:14:51.000Z "RT @MauricioRojasmr: Según la e…
+```
+]
+
+
+---
+
+## Twitter: academictwitteR tweets Encuesta CEP 4
+
+Con una cuenta académica se puede buscar en un tema específico.
+
+.font70[
+
+```r
+tweetsr_tema &lt;- rtweet::stream_tweets(query = '"Encuesta CEP"')
+```
+
+```
+## Writing to '/var/folders/hr/tjq1vv1s0_l0vn12krk6kq8h0000gn/T//RtmpM31D8P/
+## stream_tweets167e92a2e5a6c.json'
+```
+
+```r
+tweetsr_tema |&gt; 
+  select(id, created_at, text) |&gt; 
+  head()
+```
+
+```
+##             id          created_at
+## 1 1.540079e+18 2022-06-23 17:07:02
+## 2 1.540079e+18 2022-06-23 17:07:02
+## 3 1.540079e+18 2022-06-23 17:07:02
+## 4 1.540079e+18 2022-06-23 17:07:02
+## 5 1.540079e+18 2022-06-23 17:07:02
+## 6 1.540079e+18 2022-06-23 17:07:02
+##                                                                                                                                           text
+## 1                                                                                                                 se me pasó volando la semana
+## 2 RT @KarinaFeets: If you’re not willing to make financial sacrifices in order to be beneath my perfect feet, then you are not worthy. Just l…
+## 3             RT @Jolly_Jack: Everyone else forgets you, but I never will. Happy Birthday, Doctor. Have a new costume. https://t.co/it3f4yozTm
+## 4                                                                      RT @MULHERFD8: Alguém pra chupar minha buceta?? https://t.co/Xmj44fDbTF
+## 5                          @TasosGionis1 @AntVas7 @7Vercost να παρετε τον εμπαπε...ολοι οι μαλακες ελληνες ειναι και σκαουτερ και μαναντζερ...
+## 6                                                            RT @hruthik284: bir #bornova hayatım Mükemmel  #karşıyaka https://t.co/6wsCNONqLU
+```
+]
+
+---
+
+## Twitter: RTwitterV2 timeline 1
+
+Con una cuenta académica se puede buscar en un tema específico.
+
+.font70[
+
+```r
+library(RTwitterV2)
+
+tweets_tema &lt;- get_timelines_v2(user_id = tuser_id, n = 100, 
+                                token = Sys.getenv('TWITTER_BEARER_CAA')) |&gt; 
+  as_tibble()
+
+tweets_tema |&gt; 
+  select(conversation_id, created_at, text) |&gt; 
+  head()
+```
+
+```
+## # A tibble: 6 × 3
+##   conversation_id     created_at               text                             
+##   &lt;chr&gt;               &lt;chr&gt;                    &lt;chr&gt;                            
+## 1 1534947704786128904 2022-06-09T17:17:05.000Z "Announcing vetiver! 🏺\n\nvetiv…
+## 2 1527004401986064385 2022-05-18T19:13:14.000Z "Check out Part 3 of R Markdown …
+## 3 1509966787391021058 2022-04-01T18:51:50.000Z "tidymodels digest, Q1 2022.\nti…
+## 4 1518634132158369792 2022-04-25T16:52:46.000Z "Tables with #rstats! –You know …
+## 5 1508476743362887680 2022-03-28T16:10:56.000Z "Creating a custom word list for…
+## 6 1504945299420180481 2022-03-18T22:18:14.000Z "And if you’re looking for tips …
+```
+]
+
+---
+
+## Twitter: RTwitterV2 timeline 2
+
+Con una cuenta académica se puede buscar en un tema específico.
+
+.font70[
+
+```r
+tweets_tema &lt;- recent_search(search_query = "Encuesta CEP",
+                             start_time = f_date_for_twitter(as.Date('2022-06-17')),
+                             end_time = f_date_for_twitter(as.Date('2022-06-23')),
+                             n = 100,
+                             token = Sys.getenv('TWITTER_BEARER_CAA')) |&gt; 
+  as_tibble()
+
+tweets_tema |&gt; 
+  select(conversation_id, created_at, text) |&gt; 
+  head()
+```
+
+```
+## # A tibble: 6 × 3
+##   conversation_id     created_at               text                             
+##   &lt;chr&gt;               &lt;chr&gt;                    &lt;chr&gt;                            
+## 1 1538866916395102208 2022-06-20T12:50:38.000Z "No debe estar ninguna figura po…
+## 2 1537776838612615168 2022-06-17T12:39:03.000Z "@JanisMeneses_D6 o eres mentiro…
+## 3 1539613492491128832 2022-06-22T14:17:15.000Z "La Cadem es la encuesta menos f…
+## 4 1539052270557442048 2022-06-21T01:07:10.000Z "Hay algo sospechoso en estás en…
+## 5 1539231969820561408 2022-06-21T13:01:13.000Z "RT @latercera: Encuesta CEP: go…
+## 6 1537597668163080192 2022-06-17T00:47:05.000Z "RT @MauricioRojasmr: Según la e…
+```
+]
+
+
+
+---
+
+## En la próxima clase… 
+
+- Preguntas sobre trabajo final.
+
+- Ética del web scraping.
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+
+&lt;https://caayala.github.io/web_scraping_soc40XX/&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
