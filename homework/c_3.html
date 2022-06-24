@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.615">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Cristián Ayala">
+
+<title>Control 3</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+<script src="c_3_files/libs/clipboard/clipboard.min.js"></script>
+<script src="c_3_files/libs/quarto-html/quarto.js"></script>
+<script src="c_3_files/libs/quarto-html/popper.min.js"></script>
+<script src="c_3_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="c_3_files/libs/quarto-html/anchor.min.js"></script>
+<link href="c_3_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="c_3_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="c_3_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="c_3_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="c_3_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Control 3</h1>
+<p class="subtitle lead">Web Scraping y acceso a datos desde la web con R</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Autor</div>
+    <div class="quarto-title-meta-contents">
+             <p>Cristián Ayala </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de Publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">24 de junio de 2022</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+
+</div>
+<dl>
+<dt>Ponderación</dt>
+<dd>
+<p>20% de la nota final del curso</p>
+</dd>
+<dt>Formato</dt>
+<dd>
+<p>Desarrollar esta tarea en un Rmarkdown generando un <code>.pdf</code>, agregando comentarios cuando sea necesario.</p>
+</dd>
+</dl>
+<section id="objetivo" class="level3">
+<h3 class="anchored" data-anchor-id="objetivo">Objetivo:</h3>
+<p>Interesa indagar sobre parecidos y diferencias en el gusto musical en Chile, Perú y Argentina además de ver su relación con las canciones más escuchadas a nivel global. Para ello, analizaremos las listas semanales de canciones de Spotify, usando el paquete <a href="https://www.rcharlie.com/spotifyr/">spotifyr</a>.</p>
+<p>Las listas de canciones más escuchadas desde donde obtendremos la información, son las siguientes:</p>
+<ul>
+<li><a href="https://open.spotify.com/playlist/37i9dQZEVXbMDoHDwVN2tF">Top Global</a></li>
+<li><a href="https://open.spotify.com/playlist/37i9dQZEVXbKPTKrnFPD0G">Top Argentina</a></li>
+<li><a href="https://open.spotify.com/playlist/37i9dQZEVXbLJ0paT1JkgZ">Top Chile</a></li>
+<li><a href="https://open.spotify.com/playlist/37i9dQZEVXbMGcjiWgg253">Top Perú</a></li>
+</ul>
+<p>Para este análisis será necesario tener o crear una cuenta en Spotify para obtener <a href="https://developer.spotify.com/dashboard">credenciales de desarrollador</a> y acceder a su API.</p>
+</section>
+<section id="tareas" class="level2">
+<h2 class="anchored" data-anchor-id="tareas">Tareas:</h2>
+<ol type="1">
+<li><p>Obtener y mostrar el listado de las 50 canciones en cada lista.</p></li>
+<li><p>Mostrar una tabla en que se muestren las las 10 canciones más repetidas.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Canción</th>
+<th>Cantidad de apariciones en las 4 listas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Cancion 1</td>
+<td>n</td>
+</tr>
+</tbody>
+</table>
+<p>La cantidad de apariciones debiese tener un valor máximo de 4.</p></li>
+<li><p>Mostrar una tabla en que se muestren los 10 artistas más mencionados en cada lista.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Artista</th>
+<th>Cantidad de apariciones en las 4 listas</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Artista 1</td>
+<td>n</td>
+</tr>
+</tbody>
+</table>
+<p>La cantidad de apariciones puede ser mayor a 4 porque puede aparecer varias veces.</p></li>
+<li><p>Revisando lo visto en <a href="../slides/class_9/class_9.html#22">clases</a>, comparar las canciones de Chile, Argentina, Perú y la lista global respecto de sus <a href="https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-audio-features">características acústicas</a>: <em>danceability</em>, <em>energy</em>, <em>instrumentalness</em> y <em>valence</em><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<p>Obtener el promedio de esos indicadores en las 50 canciones más populares para cada lista y compárelos en un gráfico.</p>
+<p>¿Hay diferencias en el gusto musical entre los 3 países y el mundo?</p></li>
+</ol>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notas</h2>
+
+<ol>
+<li id="fn1" role="doc-endnote"><p>Estos conceptos son definidos por Spotify.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copiada");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
