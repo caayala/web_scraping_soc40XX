@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Clase 10: chromote y repaso</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Cristián Ayala  Director DESUC" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../gentle-r.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Clase 10: chromote y repaso
+]
+.subtitle[
+## Web Scraping y acceso a datos desde la web con R
+]
+.author[
+### <br>Cristián Ayala<br> Director DESUC
+]
+.date[
+### <a href="https://github.com/caayala">github.com/caayala</a>
+]
+
+---
+
+
+
+
+
+## Motivación
+
+- Obtener datos generados dinámicamente por javascript emulando un navegador con `chromote`. 
+
+  - Recuento y resumen de lo visto.
+
+---
+
+## Paquetes para la clase de hoy
+
+Grupo de paquetes interrelacionados:
+
+- [chromote](https://rstudio.github.io/chromote/): Implementación de [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) en R para manejar un navegador programáticamente.
+
+- [polite](https://dmi3kno.github.io/polite/): promueve una conducta responsable.
+
+
+---
+
+## Motivación 1
+
+.pull-left[
+- Enfretamos una página que procesa y genera contenido mediante Javascript o acciones del navegador.
+
+- La captura del html de ella no entregará información requerida. 
+
+- Podemos entonces controlar un navegador sin cabeza (*headless browser*) para generar acciones y obtener los datos demandados.
+]
+
+.pull-right[
+- Ejemplo [MIME Mineduc](https://www.mime.mineduc.cl/explorer)
+
+![Vista principal MIME](class_10_files/mime_mineduc.jpeg)
+]
+
+
+---
+
+## Motivación 2
+
+.pull-left[
+- La página es una vista de Google Maps con información georeferenciada de cada escuela.
+
+- Datos de cada escuela se despliegan al momento de hacer click sobre su ubicación.
+
+- Nuevas escuelas se cargan a medida que se dezplaza o agranda el mapa.
+
+- Queremos obtener la **información de las escuelas**.
+]
+
+.pull-right[
+- Ejemplo [MIME Mineduc](https://www.mime.mineduc.cl/explorer)
+
+![Vista principal MIME](class_10_files/mime_mineduc.jpeg)
+]
+
+
+---
+
+## Motivación 3
+
+.pull-left[
+- Al capturar su contenido sólo con `rvest` obtenemos lo siguiente:
+
+  No funciona sin un navegador que tenga javascript disponible.
+]
+
+.pull-right[
+
+```r
+url &lt;- 'https://www.mime.mineduc.cl/explorer'
+read_html(url) |&gt; 
+  html_element('body strong') |&gt; 
+  html_text()
+```
+
+```
+## [1] "We're sorry but cb-explorer-chile-front doesn't work properly without JavaScript enabled. Please enable it to continue."
+```
+]
+
+
+---
+
+## Explorar página web 1
+
+.pull-left[
+- Imágenes del mapa cargan a medida que uno desplaza la venta del navegador.
+]
+
+.pull-right[
+![Imagenes cargan al ](class_10_files/explorar_1.jpeg)
+]
+
+
+---
+
+## Explorar página web 2
+
+.pull-left[
+- La información de una escuela se accesde mediante:
+
+  - POST: Información parcial a partir de una búsqueda.
+  
+]
+
+.pull-right[
+![POST de búsqueda de colegio](class_10_files/mime_POST_busqueda_1.jpeg)
+]
+
+
+---
+
+## Explorar página web 3
+
+.pull-left[
+- La información de una escuela se accesde mediante:
+
+  - POST: Información parcial a partir de una búsqueda.
+  
+    En el *body* del POST se envía un `uuid`: 
+    `385ca3b2-7316-432d-8b5b-8688e05251ae`
+]
+
+.pull-right[
+![POST de búsqueda de colegio body](class_10_files/mime_POST_busqueda_2.jpeg)
+]
+
+
+---
+
+## Explorar página web 4
+
+.pull-left[
+- La información de una escuela se accesde mediante:
+
+  - POST: Información parcial a partir de una búsqueda.
+  
+  - GET: Información de *perfil digital*. Usa el `uuid` en la url.
+]
+
+.pull-right[
+![GET de perfil digital](class_10_files/mime_GET_informacion.jpeg)
+]
+
+
+---
+
+## Explorar página web 5
+
+.pull-left[
+- ¿Dónde obtengo el `uuid`?
+
+  - Forma parte del `id` del `&lt;div&gt;` que designa a ese punto geográfico.
+
+.font40[
+```html
+&lt;div data-v-1f3b5db2="" 
+  id="id-markermap-385ca3b2-7316-432d-8b5b-8688e05251ae"&gt;
+  ...
+&lt;/div&gt;
+```
+]
+
+- ¿Cómo puedo obtener esa información?
+
+]
+
+.pull-right[
+![GET de perfil digital](class_10_files/mime_uuid.jpeg)
+]
+
+
+---
+
+## chromote
+
+- Para su uso se recomienda tener Google Chrome instalado.
+
+- Pasos:
+
+  1. Crear una instancia del navegador controlado desde R.
+  1. Abrir una ventana.
+  1. Ir al sitio web.
+  1. Capturar los atributos que comiencen con `id-markermap`.
+  
+---
+
+## chromote: Acceso a sitio web
+
+Navegar hasta sitio de interés.
+
+.pull-left.font70[
+
+```r
+library(chromote)
+b &lt;- ChromoteSession$new() # Nuevo navegador.
+b1 &lt;- b$new_session() # Nueva "ventana".
+
+# Ir a sitio web de interés
+b1$Page$navigate("https://www.mime.mineduc.cl/explorer/")
+```
+
+```
+## $frameId
+## [1] "8BE8188D92902E17A7E0345A0941EEFE"
+## 
+## $loaderId
+## [1] "862944D246E001ECD98EECF9F52A1688"
+```
+
+```r
+Sys.sleep(20) # Tiempo para que la página cargue.
+```
+
+
+```r
+# Se puede ver lo que hace esta "ventana":
+# b1$view()
+```
+]
+
+.pull-right[
+![DevTools](class_10_files/chromote_DevTools_1.jpeg)
+]
+
+
+---
+
+## chromote: Captura de atributos 1
+
+- Obtenemos del navegador el nodo raíz (`root`) del [Document Object Model o DOM](https://en.wikipedia.org/wiki/Document_Object_Model) de la página que está viendo.
+- Usamos función [getDocument](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getDocument).
+
+.font70[
+
+```r
+x1 &lt;- b1$DOM$getDocument()
+
+x1$root |&gt; str(2)
+```
+
+```
+## List of 12
+##  $ nodeId           : int 1
+##  $ backendNodeId    : int 2
+##  $ nodeType         : int 9
+##  $ nodeName         : chr "#document"
+##  $ localName        : chr ""
+##  $ nodeValue        : chr ""
+##  $ childNodeCount   : int 2
+##  $ children         :List of 2
+##   ..$ :List of 9
+##   ..$ :List of 11
+##  $ documentURL      : chr "https://www.mime.mineduc.cl/explorer/"
+##  $ baseURL          : chr "https://www.mime.mineduc.cl/explorer/"
+##  $ xmlVersion       : chr ""
+##  $ compatibilityMode: chr "NoQuirksMode"
+```
+]
+
+
+---
+
+## chromote: Captura de atributos 2
+
+- Dentro de los nodos del documento, se buscarán elementos `&lt;div&gt;` cuyo atributo `id` comience con `id_markermap`.
+
+
+```r
+div_ids &lt;- b1$DOM$querySelectorAll(x1$root$nodeId, "div[id^=id-markermap]")
+
+div_ids$nodeIds |&gt; unlist() |&gt; head()
+```
+
+```
+## [1] 85 86 87 88 89 90
+```
+
+- Posición de los nodos de interés.
+
+---
+
+## chromote: Captura de atributos 3, mediante html
+
+- Con los nodos de interés, puedo acceder a su html mediante [getOuterHTML](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getOuterHTML)
+
+
+```r
+try(
+  b1$DOM$getOuterHTML(div_ids$nodeIds[[1]])[[1]] |&gt;
+    read_html() |&gt;
+    html_element('div') |&gt;
+    html_attr('id')
+)
+```
+
+```
+## [1] "id-markermap-17eb0fe9-dce6-496a-a892-156a0b78fc87"
+```
+
+
+---
+
+## chromote: Captura de atributos 4, mediante atributos
+
+- Con los nodos de interés, puedo más directamente al atributo con  [getAttributes](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getAttributes)
+
+.font70[
+
+```r
+try(b1$DOM$getAttributes(div_ids$nodeIds[[1]])$attributes[[4]])
+```
+
+```
+## [1] "id-markermap-17eb0fe9-dce6-496a-a892-156a0b78fc87"
+```
+]
+
+Capturar el atributo para todos los atributos que tengo identificados usando `map`.
+
+.font70[
+
+```r
+try(l_uuid &lt;- map_chr(div_ids$nodeIds,
+                      ~b1$DOM$getAttributes(.)$attributes[[4]]))
+try(length(l_uuid))
+```
+
+```
+## [1] 160
+```
+
+
+```r
+try(l_uuid |&gt; head())
+```
+
+```
+## [1] "id-markermap-17eb0fe9-dce6-496a-a892-156a0b78fc87"
+## [2] "id-markermap-cdb34f4e-a3fd-4c45-98e4-c4f004890fc3"
+## [3] "id-markermap-2c939d21-6cd3-441a-be21-c35188ea6199"
+## [4] "id-markermap-4f48f618-b6d3-4697-9299-55201e9c5c20"
+## [5] "id-markermap-67529cce-a470-4cbe-8d44-2a6b6af115b9"
+## [6] "id-markermap-a9b580c8-0f35-4220-b9d6-f2bef27459cb"
+```
+]
+
+
+---
+
+## chromote: Captura de atributos 5
+
+.pull-left[
+Se capturó el código `uuid` de 160 establecimientos. 
+
+Para capturar más establecimientos, se puede mover el mapa… y *ampliar la ventana*.
+
+.font70[
+
+```r
+# Agrandamos el tamaño del navegador.
+b1$Browser$setWindowBounds(
+  windowId = b1$Browser$getWindowForTarget()$windowId,
+  bounds = list(width = 4000, height = 6000)
+  )
+```
+
+```
+## named list()
+```
+
+```r
+Sys.sleep(20) # Tiempo para que la página cargue.
+
+if(interactive()){
+  b1$view()
+}
+```
+]
+]
+
+.pull-right[
+![Navegador luego de ampliar tamaño y ajustar zoom](class_10_files/chromote_DevTools_2.jpeg)
+]
+
+
+---
+
+## chromote: Captura de atributos 6
+
+Capturamos un mayor número de `uuid`.
+
+
+```r
+div_ids &lt;- b1$DOM$querySelectorAll(x1$root$nodeId, "div[id^=id-markermap]")
+
+l_uuid &lt;- map_chr(div_ids$nodeIds,
+                  ~b1$DOM$getAttributes(.)$attributes[[4]])
+
+length(l_uuid)
+```
+
+```
+## [1] 160
+```
+
+
+
+
+Cerrar el navegador.
+
+
+```r
+try(b1$parent$close())
+```
+
+```
+## Error in self$send_command(msg, callback = callback_, error = error_,  : 
+##   Chromote object is closed.
+```
+
+---
+
+## httr: POST búsqueda 1
+
+- Sistema anterior nos permite capturar `uuid` de un área geográfica específica, sin tener claro que colegios se muestran o no.
+
+- Se puede usar POST para buscar escuelas luego de analizar el tráfico.
+
+.font70[
+
+```r
+escuela &lt;- 'Colegio Bicentenario Victoria Prieto'
+
+resp &lt;- POST(url = 'https://api.consiliumbots.com/service-search-engine/search/campuses//',
+             query = list(language_code = 'es'),
+             accept_json(),
+             add_headers('accept-encoding' = 'gzip',
+                         'x-index' = 'chile-campuses-master'),
+             body = list(search_partial = 'true',
+                         search_size = 20,
+                         search_term = escuela))
+```
+]
+
+---
+
+## httr: POST búsqueda  2
+
+- Datos de búsqueda para Colegio Bicentenario Victoria Prieto. 
+
+  ¡Nos permite buscar el `uuid` por nombre o RBD!
+
+.font70[
+
+```r
+resp |&gt; content('text') |&gt; jsonlite::fromJSON() |&gt; str(1)
+```
+
+```
+## No encoding supplied: defaulting to UTF-8.
+```
+
+```
+## List of 9
+##  $ search                  : chr "Colegio Bicentenario Victoria Prieto"
+##  $ total_found             : int 1
+##  $ total_record            : int 1
+##  $ total_record_included   : int 1
+##  $ total_record_nonincluded: int 0
+##  $ size                    : chr "20"
+##  $ index                   : chr "chile-campuses-master"
+##  $ results                 :'data.frame':	1 obs. of  24 variables:
+##  $ results_nonincluded     : list()
+```
+]
+
+
+---
+
+## httr: POST búsqueda  3
+
+- Crear función para la captura de datos.
+
+.font70[
+
+```r
+f_mime_busqueda &lt;- function(.search_term){
+  # Recepción de la respuesta
+  response &lt;- POST(url = 'https://api.consiliumbots.com/service-search-engine/search/campuses//',
+                   query = list(language_code = 'es'),
+                   accept_json(),
+                   add_headers('accept-encoding' = 'gzip',
+                               'x-index' = 'chile-campuses-master'),
+                   body = list(search_partial = 'true',
+                               search_size = 20,
+                               search_term = .search_term))
+  
+  response |&gt; 
+    content('text', encoding = 'UTF-8') |&gt; 
+    jsonlite::fromJSON()
+}
+
+f_mime_p_response &lt;- function(.response){
+  # Respuesta de POST a tibble
+  tibble(data        = .response$results,
+         search_term = .response$search) |&gt; 
+    unpack(data)
+}
+```
+]
+
+---
+
+## httr: POST búsqueda  4
+
+Prueba con algunos colegios
+
+.pull-left.font70[
+
+```r
+df_escuelas &lt;- tibble::tribble(
+   ~rbd,                                ~nombre,
+  8928L,       "LICEO JOSE VICTORINO LASTARRIA",
+  8931L,             "ESCUELA BASICA EL VERGEL",
+  8933L,               "ESCUELA DE PROVIDENCIA",
+  8992L,    "COLEGIO ALEMAN SANKT THOMAS MORUS"
+  )
+```
+]
+
+.pull-right.font70[
+- Buscar por **`rbd`**. Aparecen más que una sola pareja.
+
+
+```r
+df &lt;- f_mime_busqueda(df_escuelas$rbd[1]) 
+
+df_unpack &lt;-  df |&gt; 
+  f_mime_p_response()
+
+df_unpack |&gt; select(id, uuid, institution_name, institution_code)
+```
+
+```
+## # A tibble: 2 × 4
+##      id uuid                                 institution_name   institution_code
+##   &lt;int&gt; &lt;chr&gt;                                &lt;chr&gt;              &lt;chr&gt;           
+## 1 16932 fc7bc076-ffed-494c-81e0-8928113c65fc Sala Cuna Y Jardi… 41679           
+## 2  5559 1203abb2-7217-4004-891f-4c859bd516bb Liceo Jose Victor… 8928
+```
+]
+
+
+---
+
+## httr: POST búsqueda  5
+
+.font70[
+- Buscar por **nombre**. También parecen varios resultados.
+
+
+```r
+df &lt;- f_mime_busqueda(df_escuelas$nombre[1]) 
+
+df_unpack &lt;-  df |&gt; 
+  f_mime_p_response()
+
+df_unpack |&gt; select(id, uuid, institution_name, institution_code)
+```
+
+```
+## # A tibble: 2 × 4
+##      id uuid                                 institution_name   institution_code
+##   &lt;int&gt; &lt;chr&gt;                                &lt;chr&gt;              &lt;chr&gt;           
+## 1  4050 30e3bb98-f420-463c-a07b-d6fbc9ed64b3 Liceo Jose Victor… 6270            
+## 2  5559 1203abb2-7217-4004-891f-4c859bd516bb Liceo Jose Victor… 8928
+```
+]
+
+
+---
+
+## httr: POST búsqueda  6
+
+Obtener información de `df_escuelas` según `rbd` usando map.
+
+.font70[
+
+```r
+df_rbd &lt;- map(df_escuelas$rbd, 
+              f_mime_busqueda) 
+
+df_unpack &lt;-  map_dfr(df_rbd, 
+                      f_mime_p_response)
+
+df_unpack |&gt; select(id, uuid, institution_name, institution_code)
+```
+
+```
+## # A tibble: 11 × 4
+##       id uuid                                 institution_name  institution_code
+##    &lt;int&gt; &lt;chr&gt;                                &lt;chr&gt;             &lt;chr&gt;           
+##  1 16932 fc7bc076-ffed-494c-81e0-8928113c65fc Sala Cuna Y Jard… 41679           
+##  2  5559 1203abb2-7217-4004-891f-4c859bd516bb Liceo Jose Victo… 8928            
+##  3 16208 31d28dde-4dc5-436e-8931-e60f37f3fa02 Escuela Especial… 40145           
+##  4  5561 ca0a42b5-ebf2-4ac8-9f6f-51c8e94b3429 Escuela Basica E… 8931            
+##  5  5563 218eefc1-cd1e-4083-b413-24e242eda43f Escuela De Provi… 8933            
+##  6  5562 6fb14f8b-094f-4052-a989-c431f57000e0 Escuela De Provi… 8933            
+##  7  7725 f9dda68d-011a-4638-8933-478a85a40b30 Centro Integral … 14310           
+##  8  1776 787a8177-22ec-47f9-8933-c197760f937c Escuela Municipa… 2609            
+##  9 13115 728507d3-8933-4972-b29a-e1b919766400 Mi Pequeño Refug… 34078           
+## 10  8972 f4cc4034-3709-47db-8933-c229abbbe4be Colegio Saint Ge… 17918           
+## 11  5588 cfb2f69d-6959-4ae6-a142-63e731c98ba2 Colegio Aleman S… 8992
+```
+]
+
+
+---
+
+## rvest: información de detalle 1
+
+Para la información de detalle, es posible usar simplemente `jsonlite::fromJSON`, si se conoce el `uuid`.
+
+.pull-left.font70[
+
+```r
+f_uuid_detalle &lt;- function(.uuid){
+  jsonlite::fromJSON(str_glue(
+    'https://api.consiliumbots.com/explorer-backend/r/chile/institutions/campuses/{.uuid}/'
+    ))
+}
+
+x &lt;- f_uuid_detalle(df_unpack$uuid[[1]])
+```
+]
+
+.pull-right.font40[
+- Lista de respuesta
+
+
+```r
+x |&gt; str(1)
+```
+
+```
+## List of 56
+##  $ id                         : int 16932
+##  $ uuid                       : chr "fc7bc076-ffed-494c-81e0-8928113c65fc"
+##  $ institution_code           : chr "41679"
+##  $ campus_code                : chr "4167900001"
+##  $ campus_name                : chr "Sala Cuna Y Jardin Infantil El Manzano"
+##  $ institution_name           : chr "Sala Cuna Y Jardin Infantil El Manzano"
+##  $ grade_min                  : chr "Sala Cuna Menor (85 días a 1 año)"
+##  $ grade_max                  : chr "Nivel Medio Mayor (3 a 4 años)"
+##  $ sector_label               :List of 2
+##  $ religion_label             :List of 2
+##  $ internet                   : logi FALSE
+##  $ need_verification          : logi FALSE
+##  $ pei_pdf                    : chr ""
+##  $ included                   : logi TRUE
+##  $ campus_location            :'data.frame':	1 obs. of  7 variables:
+##  $ payment_campus             :'data.frame':	1 obs. of  7 variables:
+##  $ payment                    : chr "Sin Información"
+##  $ tuition                    : chr "Sin Información"
+##  $ quality_measure_campus     : list()
+##  $ performance                : list()
+##  $ multimedia_options         :List of 16
+##  $ isFavorite                 : logi FALSE
+##  $ explored                   : logi FALSE
+##  $ exploredMapCard            : logi FALSE
+##  $ vacancies                  :'data.frame':	6 obs. of  10 variables:
+##  $ ratex                      :List of 3
+##  $ risk_stats                 :List of 3
+##  $ campus_images              : list()
+##  $ audiovisual_campus         : list()
+##  $ num_views                  : int 3
+##  $ num_applications           : int 0
+##  $ pridepoint_campus          : list()
+##  $ infraestructure_campus     : list()
+##  $ extraactivity_campus       : list()
+##  $ sport_campus               : list()
+##  $ institutiontext_campus     :'data.frame':	1 obs. of  6 variables:
+##  $ institutionmember_campus   : list()
+##  $ institutioncontact_campus  :'data.frame':	1 obs. of  9 variables:
+##  $ institutionagreement_campus: list()
+##  $ institution_grade_min      : chr ""
+##  $ institution_grade_max      : chr ""
+##  $ campus_stats               :List of 5
+##  $ support_campus             : list()
+##  $ program_campus             :'data.frame':	6 obs. of  14 variables:
+##  $ campus_priority            : list()
+##  $ num_enrollment             : int 0
+##  $ campus_images_thumbnail    : NULL
+##  $ campus_images_gallery      : NULL
+##  $ higheredstats_campus       : list()
+##  $ testscore_campus           : list()
+##  $ campus_admission_system    :'data.frame':	1 obs. of  10 variables:
+##  $ language_campus            : list()
+##  $ required_documents         : NULL
+##  $ frequently_asked_questions : NULL
+##  $ required_tests             : NULL
+##  $ achievement_campus         : list()
+```
+]
+
+
+---
+
+## rvest: información de detalle 2
+
+Capturar la información de todos los `uuid` que hemos capturado.
+
+.font70[
+
+```r
+l_info &lt;- map(df_unpack$uuid, 
+              f_uuid_detalle)
+
+df_info &lt;- l_info |&gt; 
+  enframe() |&gt; 
+  unnest_wider(value)
+
+head(df_info, 2)
+```
+
+```
+## # A tibble: 2 × 57
+##    name    id uuid     institution_code campus_code campus_name institution_name
+##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;            &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt;           
+## 1     1 16932 fc7bc07… 41679            4167900001  Sala Cuna … Sala Cuna Y Jar…
+## 2     2  5559 1203abb… 8928             892800001   Liceo Jose… Liceo Jose Vict…
+## # … with 50 more variables: grade_min &lt;chr&gt;, grade_max &lt;chr&gt;,
+## #   sector_label &lt;list&gt;, religion_label &lt;list&gt;, internet &lt;lgl&gt;,
+## #   need_verification &lt;lgl&gt;, pei_pdf &lt;chr&gt;, included &lt;lgl&gt;,
+## #   campus_location &lt;df[,7]&gt;, payment_campus &lt;df[,7]&gt;, payment &lt;chr&gt;,
+## #   tuition &lt;chr&gt;, quality_measure_campus &lt;list&gt;, performance &lt;list&gt;,
+## #   multimedia_options &lt;list&gt;, isFavorite &lt;lgl&gt;, explored &lt;lgl&gt;,
+## #   exploredMapCard &lt;lgl&gt;, vacancies &lt;list&gt;, ratex &lt;list&gt;, risk_stats &lt;list&gt;, …
+```
+]
+
+
+---
+
+## rvest: información de detalle 3
+
+Capturar la información de todos los `uuid` que hemos capturado.
+
+.font70[
+
+```r
+df_uuid &lt;- l_uuid[1:20] |&gt; 
+  str_remove('id-markermap-') |&gt; 
+  map(f_uuid_detalle)
+
+df_uuid &lt;- df_uuid |&gt; 
+  enframe() |&gt; 
+  unnest_wider(value)
+
+df_uuid
+```
+
+```
+## # A tibble: 20 × 57
+##     name    id uuid    institution_code campus_code campus_name institution_name
+##    &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;            &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt;           
+##  1     1  5405 17eb0f… 8586             858600001   "Escuela D… "Escuela Difere…
+##  2     2  5468 90651f… 8720             872000001   "Escuela P… "Escuela Partic…
+##  3     3  8768 d71607… 16986            1698600001  "Los Capul… "Los Capullitos"
+##  4     4  1184 cdb34f… 1680             168000001   "Escuela O… "Escuela Orland…
+##  5     5  3184 2c939d… 4848             484800001   "Escuela B… "Escuela Basica…
+##  6     6  3420 c2340f… 5157             515700001   "Escuela B… "Escuela Basica…
+##  7     7  8660 3ff8e4… 16859            1685900001  "Escuela D… "Escuela De Par…
+##  8     8  8632 ded1f9… 16827            1682700001  "Escuela E… "Escuela Especi…
+##  9     9  7066 706fc0… 12097            1209700001  "Escuela E… "Escuela Especi…
+## 10    10  7778 4f48f6… 14413            1441300001  "Colegio S… "Colegio Santa …
+## 11    11 17016 9aeec8… 41775            4177500001  "Sala Cuna… "Sala Cuna Y Ja…
+## 12    12  7546 67529c… 13424            1342400001  "Jardin In… "Jardin Infanti…
+## 13    13  7671 a9b580… 13630            1363000001  "Escuela E… "Escuela Especi…
+## 14    14 17056 a939df… 41821            4182100001  "Escuela E… "Escuela Especi…
+## 15    15 16811 544862… 41504            4150400001  "Escuela E… "Escuela Especi…
+## 16    16  7118 7bdd7f… 12273            1227300001  "Esc.Mun.D… "Esc.Mun.De Par…
+## 17    17  7081 ae923e… 12133            1213300001  "Colegio F… "Colegio Franci…
+## 18    18  6961 86a224… 11828            1182800001  "Escuela E… "Escuela Especi…
+## 19    19  7070 a93b27… 12108            1210800001  " Escuela … " Escuela Parti…
+## 20    20  7067 b8fe82… 12102            1210200001  "Esc. De P… "Esc. De Parvul…
+## # … with 50 more variables: grade_min &lt;chr&gt;, grade_max &lt;chr&gt;,
+## #   sector_label &lt;list&gt;, religion_label &lt;list&gt;, internet &lt;lgl&gt;,
+## #   need_verification &lt;lgl&gt;, pei_pdf &lt;chr&gt;, included &lt;lgl&gt;,
+## #   campus_location &lt;df[,7]&gt;, payment_campus &lt;df[,7]&gt;, payment &lt;chr&gt;,
+## #   tuition &lt;chr&gt;, quality_measure_campus &lt;list&gt;, performance &lt;list&gt;,
+## #   multimedia_options &lt;list&gt;, isFavorite &lt;lgl&gt;, explored &lt;lgl&gt;,
+## #   exploredMapCard &lt;lgl&gt;, vacancies &lt;list&gt;, ratex &lt;list&gt;, risk_stats &lt;list&gt;, …
+```
+]
+
+
+---
+
+## Referencias adicionales:
+
+- [RSelenium](https://docs.ropensci.org/RSelenium/index.html). Otro paquete para manejo de un navegador sin cabeza. 
+
+
+---
+class: inverse, middle
+
+Presentación y código en GitHub:  
+&lt;https://github.com/caayala/web_scraping_soc40XX&gt;  
+
+&lt;https://caayala.github.io/web_scraping_soc40XX/&gt;
+
+
+---
+class: inverse, center, middle
+
+.huge[
+¡Gracias!
+]
+
+&lt;br&gt;
+Cristián Ayala  
+&lt;https://blog.desuc.cl/&gt;  
+&lt;http://github.com/caayala&gt;
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
