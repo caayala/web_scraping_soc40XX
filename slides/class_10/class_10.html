@@ -54,11 +54,11 @@ Grupo de paquetes interrelacionados:
 ## Motivación 1
 
 .pull-left[
-- Enfretamos una página que procesa y genera contenido mediante Javascript o acciones del navegador.
+- Enfretamos una página que procesa y genera contenido mediante JavaScript o acciones del navegador.
 
 - La captura del html de ella no entregará información requerida. 
 
-- Podemos entonces controlar un navegador sin cabeza (*headless browser*) para generar acciones y obtener los datos demandados.
+- Podemos entonces controlar un navegador sin cabeza (*[headless browser](https://en.wikipedia.org/wiki/Headless_browser)*) para generar acciones y obtener los datos demandados.
 ]
 
 .pull-right[
@@ -73,11 +73,11 @@ Grupo de paquetes interrelacionados:
 ## Motivación 2
 
 .pull-left[
-- La página es una vista de Google Maps con información georeferenciada de cada escuela.
+- La página es una vista de Google Maps con información georreferenciada de cada escuela.
 
-- Datos de cada escuela se despliegan al momento de hacer click sobre su ubicación.
+- Datos de cada escuela se despliegan al momento de hacer clic sobre su ubicación.
 
-- Nuevas escuelas se cargan a medida que se dezplaza o agranda el mapa.
+- Nuevas escuelas se cargan a medida que se desplaza o agranda el mapa.
 
 - Queremos obtener la **información de las escuelas**.
 ]
@@ -96,7 +96,7 @@ Grupo de paquetes interrelacionados:
 .pull-left[
 - Al capturar su contenido sólo con `rvest` obtenemos lo siguiente:
 
-  No funciona sin un navegador que tenga javascript disponible.
+  No funciona sin un navegador que tenga JavaScript disponible.
 ]
 
 .pull-right[
@@ -132,7 +132,7 @@ read_html(url) |&gt;
 ## Explorar página web 2
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -148,7 +148,7 @@ read_html(url) |&gt;
 ## Explorar página web 3
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -166,7 +166,7 @@ read_html(url) |&gt;
 ## Explorar página web 4
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -237,10 +237,10 @@ b1$Page$navigate("https://www.mime.mineduc.cl/explorer/")
 
 ```
 ## $frameId
-## [1] "8BE8188D92902E17A7E0345A0941EEFE"
+## [1] "ED98B2602CE9C14858321099BCDFA2D5"
 ## 
 ## $loaderId
-## [1] "862944D246E001ECD98EECF9F52A1688"
+## [1] "9D577C37708B35F43AA55927C92C3255"
 ```
 
 ```r
@@ -338,7 +338,7 @@ try(
 
 ## chromote: Captura de atributos 4, mediante atributos
 
-- Con los nodos de interés, puedo más directamente al atributo con  [getAttributes](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getAttributes)
+- Con los nodos de interés, puedo más directamente al atributo con [getAttributes](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getAttributes)
 
 .font70[
 
@@ -480,7 +480,7 @@ resp &lt;- POST(url = 'https://api.consiliumbots.com/service-search-engine/searc
 
 ---
 
-## httr: POST búsqueda  2
+## httr: POST búsqueda 2
 
 - Datos de búsqueda para Colegio Bicentenario Victoria Prieto. 
 
@@ -513,7 +513,7 @@ resp |&gt; content('text') |&gt; jsonlite::fromJSON() |&gt; str(1)
 
 ---
 
-## httr: POST búsqueda  3
+## httr: POST búsqueda 3
 
 - Crear función para la captura de datos.
 
@@ -547,7 +547,7 @@ f_mime_p_response &lt;- function(.response){
 
 ---
 
-## httr: POST búsqueda  4
+## httr: POST búsqueda 4
 
 Prueba con algunos colegios
 
@@ -589,7 +589,7 @@ df_unpack |&gt; select(id, uuid, institution_name, institution_code)
 
 ---
 
-## httr: POST búsqueda  5
+## httr: POST búsqueda 5
 
 .font70[
 - Buscar por **nombre**. También parecen varios resultados.
@@ -608,15 +608,15 @@ df_unpack |&gt; select(id, uuid, institution_name, institution_code)
 ## # A tibble: 2 × 4
 ##      id uuid                                 institution_name   institution_code
 ##   &lt;int&gt; &lt;chr&gt;                                &lt;chr&gt;              &lt;chr&gt;           
-## 1  4050 30e3bb98-f420-463c-a07b-d6fbc9ed64b3 Liceo Jose Victor… 6270            
-## 2  5559 1203abb2-7217-4004-891f-4c859bd516bb Liceo Jose Victor… 8928
+## 1  5559 1203abb2-7217-4004-891f-4c859bd516bb Liceo Jose Victor… 8928            
+## 2  4050 30e3bb98-f420-463c-a07b-d6fbc9ed64b3 Liceo Jose Victor… 6270
 ```
 ]
 
 
 ---
 
-## httr: POST búsqueda  6
+## httr: POST búsqueda 6
 
 Obtener información de `df_escuelas` según `rbd` usando map.
 
@@ -643,8 +643,8 @@ df_unpack |&gt; select(id, uuid, institution_name, institution_code)
 ##  5  5563 218eefc1-cd1e-4083-b413-24e242eda43f Escuela De Provi… 8933            
 ##  6  5562 6fb14f8b-094f-4052-a989-c431f57000e0 Escuela De Provi… 8933            
 ##  7  7725 f9dda68d-011a-4638-8933-478a85a40b30 Centro Integral … 14310           
-##  8  1776 787a8177-22ec-47f9-8933-c197760f937c Escuela Municipa… 2609            
-##  9 13115 728507d3-8933-4972-b29a-e1b919766400 Mi Pequeño Refug… 34078           
+##  8 13115 728507d3-8933-4972-b29a-e1b919766400 Mi Pequeño Refug… 34078           
+##  9  1776 787a8177-22ec-47f9-8933-c197760f937c Escuela Municipa… 2609            
 ## 10  8972 f4cc4034-3709-47db-8933-c229abbbe4be Colegio Saint Ge… 17918           
 ## 11  5588 cfb2f69d-6959-4ae6-a142-63e731c98ba2 Colegio Aleman S… 8992
 ```

@@ -53,11 +53,11 @@ Grupo de paquetes interrelacionados:
 ## Motivación 1
 
 .pull-left[
-- Enfretamos una página que procesa y genera contenido mediante Javascript o acciones del navegador.
+- Enfretamos una página que procesa y genera contenido mediante JavaScript o acciones del navegador.
 
 - La captura del html de ella no entregará información requerida. 
 
-- Podemos entonces controlar un navegador sin cabeza (*headless browser*) para generar acciones y obtener los datos demandados.
+- Podemos entonces controlar un navegador sin cabeza (*[headless browser](https://en.wikipedia.org/wiki/Headless_browser)*) para generar acciones y obtener los datos demandados.
 ]
 
 .pull-right[
@@ -72,11 +72,11 @@ Grupo de paquetes interrelacionados:
 ## Motivación 2
 
 .pull-left[
-- La página es una vista de Google Maps con información georeferenciada de cada escuela.
+- La página es una vista de Google Maps con información georreferenciada de cada escuela.
 
-- Datos de cada escuela se despliegan al momento de hacer click sobre su ubicación.
+- Datos de cada escuela se despliegan al momento de hacer clic sobre su ubicación.
 
-- Nuevas escuelas se cargan a medida que se dezplaza o agranda el mapa.
+- Nuevas escuelas se cargan a medida que se desplaza o agranda el mapa.
 
 - Queremos obtener la **información de las escuelas**.
 ]
@@ -95,7 +95,7 @@ Grupo de paquetes interrelacionados:
 .pull-left[
 - Al capturar su contenido sólo con `rvest` obtenemos lo siguiente:
 
-  No funciona sin un navegador que tenga javascript disponible.
+  No funciona sin un navegador que tenga JavaScript disponible.
 ]
 
 .pull-right[
@@ -126,7 +126,7 @@ read_html(url) |>
 ## Explorar página web 2
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -142,7 +142,7 @@ read_html(url) |>
 ## Explorar página web 3
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -160,7 +160,7 @@ read_html(url) |>
 ## Explorar página web 4
 
 .pull-left[
-- La información de una escuela se accesde mediante:
+- La información de una escuela se accede mediante:
 
   - POST: Información parcial a partir de una búsqueda.
   
@@ -290,7 +290,7 @@ try(
 
 ## chromote: Captura de atributos 4, mediante atributos
 
-- Con los nodos de interés, puedo más directamente al atributo con  [getAttributes](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getAttributes)
+- Con los nodos de interés, puedo más directamente al atributo con [getAttributes](https://chromedevtools.github.io/devtools-protocol/tot/DOM/#method-getAttributes)
 
 .font70[
 ```{r}
@@ -403,7 +403,7 @@ resp <- POST(url = 'https://api.consiliumbots.com/service-search-engine/search/c
 
 ---
 
-## httr: POST búsqueda  2
+## httr: POST búsqueda 2
 
 - Datos de búsqueda para `r escuela`. 
 
@@ -418,7 +418,7 @@ resp |> content('text') |> jsonlite::fromJSON() |> str(1)
 
 ---
 
-## httr: POST búsqueda  3
+## httr: POST búsqueda 3
 
 - Crear función para la captura de datos.
 
@@ -451,7 +451,7 @@ f_mime_p_response <- function(.response){
 
 ---
 
-## httr: POST búsqueda  4
+## httr: POST búsqueda 4
 
 Prueba con algunos colegios
 
@@ -483,7 +483,7 @@ df_unpack |> select(id, uuid, institution_name, institution_code)
 
 ---
 
-## httr: POST búsqueda  5
+## httr: POST búsqueda 5
 
 .font70[
 - Buscar por **nombre**. También parecen varios resultados.
@@ -501,7 +501,7 @@ df_unpack |> select(id, uuid, institution_name, institution_code)
 
 ---
 
-## httr: POST búsqueda  6
+## httr: POST búsqueda 6
 
 Obtener información de `df_escuelas` según `rbd` usando map.
 
