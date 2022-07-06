@@ -55,6 +55,7 @@ Tendremos clases teóricas (T) y prácticas (P).
 
 -   Control 3 (20%): Análisis de canciones.
     [Instrucciones](./homework/c_3).
+    [Respuesta](./homework/c_3_answers.pdf)
 
 -   Trabajo Final (40%):
 
